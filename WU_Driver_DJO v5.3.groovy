@@ -341,7 +341,7 @@ def pollHandler2(resp1, data) {
 			state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
 			if(useIcons){
 			state.iconCode2 = (obs1.daypart[0].iconCode[2]
-			if(state.forecastTemp == null){state.iconCode1 = (obs1.daypart[0].iconCode[1]) )	
+			if(state.forecastTemp == null){state.iconCode1 = (obs1.daypart[0].iconCode[1]))	
 				}				
 			else{	
 			state.iconCode1 = (obs1.daypart[0].iconCode[0])
