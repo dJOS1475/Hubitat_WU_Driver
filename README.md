@@ -17,8 +17,10 @@ Unless required by applicable law or agreed to in writing, software distributed 
 on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
 for the specific language governing permissions and limitations under the License.
 
-Last Update 28/10/2020
- 
+Last Update 29/10/2020
+
+v5.4.0 - Bug Fixes
+
 v5.3.0 - Major to changes forecastToday to auto-switch to night info including fixing icons to match
 
 v5.2.0 - Modified to add forecastToday and forecastTomorrow by Derek Osborn
