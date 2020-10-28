@@ -25,3 +25,4 @@ v5.1.0 - Modified to use latitude and longitude from the hub and add cloudCover 
 V5.0.0 - Release by @Cobra
 V1.0.0 - Original @mattw01 version
 
+
