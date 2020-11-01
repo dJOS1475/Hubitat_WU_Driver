@@ -19,7 +19,6 @@
  *  Last Update 28/10/2020
  *
  *
- *  v5.4.0 - Bug Fixes
  *	v5.3.0 - Major to changes forecastToday to auto-switch to night info including fixing icons to match
  *	v5.2.0 - Modified to add forecastToday and forecastTomorrow by Derek Osborn
  *	v5.1.0 - Modified to use latitude and longitude from the hub and add cloudCover by Derek Osborn
@@ -116,8 +115,8 @@ metadata {
             input "useIcons", "bool", required: false, title: "Use externally hosted icons (Optional)", defaultValue: false
 			if(useIcons){
 			input "iconURL1", "text", required: true, title: "Icon Base URL"
-			input "iconHeight1", "text", required: true, title: "Icon Height", defaultValue: 100
-			input "iconWidth1", "text", required: true, title: "Icon Width", defaultValue: 100}			
+			input "iconHeight1", "text", required: true, title: "Icon Height", defaultValue: 25
+			input "iconWidth1", "text", required: true, title: "Icon Width", defaultValue: 25}			
             input "pollIntervalLimit", "number", title: "Poll Interval Limit:", required: true, defaultValue: 1
             input "autoPoll", "bool", required: false, title: "Enable Auto Poll"
             input "pollInterval", "enum", title: "Auto Poll Interval:", required: false, defaultValue: "5 Minutes", options: ["5 Minutes", "10 Minutes", "15 Minutes", "30 Minutes", "1 Hour", "3 Hours"]
@@ -330,7 +329,7 @@ def pollHandler2(resp1, data) {
 			state.forecastTemp = (obs1.daypart[0].narrative[0])
 			if(state.forecastTemp == null){sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[1], isStateChange: state.force )}
             else {sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[0], isStateChange: state.force )}		
-			sendEvent(name: "forecastTomorrow", value: obs1.daypart[0].narrative[2], isStateChange: state.force )
+			sendEvent(name: "forecastTomorrow", value: obs1.daypart[0].narrative[2], isStateChange: state.force )  
             sendEvent(name: "weather", value: obs1.daypart[0].wxPhraseLong[0], isStateChange: state.force )
             sendEvent(name: "wind_dir", value: obs1.daypart[0].windDirectionCardinal[0], isStateChange: state.force )
 			sendEvent(name: "windPhrase", value: obs1.daypart[0].windPhrase[0], isStateChange: state.force )
@@ -341,15 +340,16 @@ def pollHandler2(resp1, data) {
 			sendEvent(name: "UVHarm", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
 			state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
 			if(useIcons){
-			state.iconCode2 = (obs1.daypart[0].iconCode[2]
-			if(state.forecastTemp == null){state.iconCode1 = (obs1.daypart[0].iconCode[1]))	
+			if(state.forecastTemp == null){	
+			state.iconCode1 = (obs1.daypart[0].iconCode[1])
+			state.iconCode2 = (obs1.daypart[0].iconCode[2])	
 				}				
 			else{	
 			state.iconCode1 = (obs1.daypart[0].iconCode[0])
+			state.iconCode2 = (obs1.daypart[0].iconCode[2])	
 				}
             state.icon1 = "<img src='" +iconURL1 +state.iconCode1 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
 			state.icon2 = "<img src='" +iconURL1 +state.iconCode2 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
-			state.icon3 = "<img src='" +iconURL1 +state.iconCode2 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
 			sendEvent(name: "forecastTodayIcon", value: state.icon1, isStateChange: state.force )
 			sendEvent(name: "forecastTomorrowIcon", value: state.icon2, isStateChange: state.force )
 			} 
@@ -368,12 +368,18 @@ def logsOff() {
 log.warn "Debug logging disabled..."
 device.updateSetting("logSet", [value: "false", type: "bool"])}
 
-
-
 def version(){
+ //   updateCheck()
     createLocationVariable("lattSaved")
     createLocationVariable("longSaved")
     createLocationVariable("todayRain")
-
+   	def random = new Random()
+    Integer randomHour = random.nextInt(18-10) + 10
+    Integer randomDayOfWeek = random.nextInt(7-1) + 1 
 }
     
+def setVersion(){
+    state.version = "5.2.0"
+    state.InternalName = "WU_Weather_Driver"
+    state.DriverAuthor = "dJOS"
+}
