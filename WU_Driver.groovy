@@ -19,11 +19,12 @@
  *  Last Update 28/10/2020
  *
  *
+ *	v5.4.0 - Bug Fixes
  *	v5.3.0 - Major to changes forecastToday to auto-switch to night info including fixing icons to match
  *	v5.2.0 - Modified to add forecastToday and forecastTomorrow by Derek Osborn
  *	v5.1.0 - Modified to use latitude and longitude from the hub and add cloudCover by Derek Osborn
- *  V5.0.0 - Release by @Cobra
- *  V1.0.0 - Original @mattw01 version
+ *      V5.0.0 - Release by @Cobra
+ *      V1.0.0 - Original @mattw01 version
  *
  */
 
