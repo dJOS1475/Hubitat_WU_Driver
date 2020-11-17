@@ -19,12 +19,13 @@
  *  Last Update 28/10/2020
  *
  *
- *		v5.4.0 - Bug Fixes
- *		v5.3.0 - Major to changes forecastToday to auto-switch to night info including fixing icons to match
- *		v5.2.0 - Modified to add forecastToday and forecastTomorrow by Derek Osborn
- *		v5.1.0 - Modified to use latitude and longitude from the hub and add cloudCover by Derek Osborn
- *		V5.0.0 - Release by @Cobra
- *		V1.0.0 - Original @mattw01 version
+ *	v5.5.0 - WU Icons now hosted on GitHub
+ *	v5.4.0 - Bug Fixes
+ *	v5.3.0 - Major to changes forecastToday to auto-switch to night info including fixing icons to match
+ *	v5.2.0 - Modified to add forecastToday and forecastTomorrow by Derek Osborn
+ *	v5.1.0 - Modified to use latitude and longitude from the hub and add cloudCover by Derek Osborn
+ *	V5.0.0 - Release by @Cobra
+ *	V1.0.0 - Original @mattw01 version
  *
  */
 
@@ -104,6 +105,7 @@ metadata {
         attribute "lastUpdateCheck", "string"
         attribute "lastPollTime", "string"
         attribute "cloudCover", "number"
+
      
         
     }
@@ -113,11 +115,10 @@ metadata {
             input "pollLocation", "text", required: true, title: "Station ID"
 			input "unitFormat", "enum", required: true, title: "Unit Format",  options: ["Imperial", "Metric", "UK Hybrid"]
             if(unitFormat == "UK Hybrid"){input "unitElevation", "bool", required: false, title: "Use Metric for elevation (m)", defaultValue: false}
-            input "useIcons", "bool", required: false, title: "Use externally hosted icons (Optional)", defaultValue: false
+            input "useIcons", "bool", required: false, title: "Use WU Icons (Optional)", defaultValue: true
 			if(useIcons){
-			input "iconURL1", "text", required: true, title: "Icon Base URL"
-			input "iconHeight1", "text", required: true, title: "Icon Height", defaultValue: 25
-			input "iconWidth1", "text", required: true, title: "Icon Width", defaultValue: 25}			
+			input "iconHeight1", "text", required: true, title: "Icon Height", defaultValue: 100
+			input "iconWidth1", "text", required: true, title: "Icon Width", defaultValue: 100}			
             input "pollIntervalLimit", "number", title: "Poll Interval Limit:", required: true, defaultValue: 1
             input "autoPoll", "bool", required: false, title: "Enable Auto Poll"
             input "pollInterval", "enum", title: "Auto Poll Interval:", required: false, defaultValue: "5 Minutes", options: ["5 Minutes", "10 Minutes", "15 Minutes", "30 Minutes", "1 Hour", "3 Hours"]
@@ -349,6 +350,7 @@ def pollHandler2(resp1, data) {
 			state.iconCode1 = (obs1.daypart[0].iconCode[0])
 			state.iconCode2 = (obs1.daypart[0].iconCode[2])	
 				}
+            iconURL1 = "https://github.com/dJOS1475/Hubitat_WU_Driver/raw/main/wuIcons/"
             state.icon1 = "<img src='" +iconURL1 +state.iconCode1 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
 			state.icon2 = "<img src='" +iconURL1 +state.iconCode2 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
 			sendEvent(name: "forecastTodayIcon", value: state.icon1, isStateChange: state.force )
