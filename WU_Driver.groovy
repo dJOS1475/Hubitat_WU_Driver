@@ -19,7 +19,7 @@
  *  Last Update 28/10/2020
  *
  *
- *	v5.5.0 - WU Icons now hosted on GitHub
+ *	v5.5.0 - WU Icons now hosted on GitHub Repo (but still optional) - no URL's are required to be copy and pasted and Icon's now work when connected via the cloud
  *	v5.4.0 - Bug Fixes
  *	v5.3.0 - Major to changes forecastToday to auto-switch to night info including fixing icons to match
  *	v5.2.0 - Modified to add forecastToday and forecastTomorrow by Derek Osborn
