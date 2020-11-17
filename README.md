@@ -17,12 +17,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
 for the specific language governing permissions and limitations under the License.
 
-The Wunderground Icon's have been uploaded to this GitHub Repo - you can now point your WU driver at the following location:
 
-https://github.com/dJOS1475/Hubitat_WU_Driver/raw/main/wuIcons/
+Last Update 17/11/2020
 
-Last Update 29/10/2020
-
+v5.5.0 - WU Icons now hosted on GitHub
+ 
 v5.4.0 - Bug Fixes
 
 v5.3.0 - Major to changes forecastToday to auto-switch to night info including fixing icons to match
