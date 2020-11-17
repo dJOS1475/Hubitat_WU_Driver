@@ -20,7 +20,7 @@ for the specific language governing permissions and limitations under the Licens
 
 Last Update 17/11/2020
 
-v5.5.0 - WU Icons now hosted on GitHub
+v5.5.0 - WU Icons now hosted on GitHub Repo (but still optional) - no URL's are required to be copy and pasted and Icon's now work when connected via the cloud
  
 v5.4.0 - Bug Fixes
 
