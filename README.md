@@ -1,12 +1,9 @@
 # Hubitat_WU_Driver
 Weather Underground Driver for Hubitat
 
-Wunderground Driver
-
-Derek Osborn
+Wunderground Driver - Modified and fixed by @dJOS
 
 This driver was originally written by @mattw01 and @Cobra
-Modified and fixed by myself: @dJOS
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at:
