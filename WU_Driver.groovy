@@ -19,7 +19,8 @@
  *  Last Update 28/10/2020
  *
  *
- *	v5.5.0 - WU Icons now hosted on GitHub Repo (but still optional) - no URL's are required to be copy and pasted and Icon's now work when connected via the cloud
+ *	v5.6.0 - add selectable language eg en-GB or en-US 
+ *	v5.5.0 - WU Icons now hosted on GitHub
  *	v5.4.0 - Bug Fixes
  *	v5.3.0 - Major to changes forecastToday to auto-switch to night info including fixing icons to match
  *	v5.2.0 - Modified to add forecastToday and forecastTomorrow by Derek Osborn
@@ -115,6 +116,7 @@ metadata {
             input "pollLocation", "text", required: true, title: "Station ID"
 			input "unitFormat", "enum", required: true, title: "Unit Format",  options: ["Imperial", "Metric", "UK Hybrid"]
             if(unitFormat == "UK Hybrid"){input "unitElevation", "bool", required: false, title: "Use Metric for elevation (m)", defaultValue: false}
+            input "language", "enum", required: true, title: "Language",  options: ["US", "GB"]
             input "useIcons", "bool", required: false, title: "Use WU Icons (Optional)", defaultValue: true
 			if(useIcons){
 			input "iconHeight1", "text", required: true, title: "Icon Height", defaultValue: 100
@@ -313,7 +315,7 @@ def poll2(){
     formatUnit()
     state.latt1 = (location.getLatitude())
     state.long1 = (location.getLongitude()) 
-    def params2 = [uri: "https://api.weather.com/v3/wx/forecast/daily/5day?geocode=${state.latt1},${state.long1}&units=${state.unit}&language=en-US&format=json&apiKey=${apiKey}"]
+    def params2 = [uri: "https://api.weather.com/v3/wx/forecast/daily/5day?geocode=${state.latt1},${state.long1}&units=${state.unit}&language=${state.language}&format=json&apiKey=${apiKey}"]
     if(logSet == true){log.debug "Poll2 - state.latt1 = $state.latt1 -- state.long1 = $state.long1"}
     asynchttpGet("pollHandler2", params2)
 }
