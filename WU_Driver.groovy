@@ -158,7 +158,7 @@ def forceUpdateOff(){
     log.info "Force attribute refresh set to 'false'"
 }
 
-def ResetPollCount(){
+def resetPollCount(){
 	state.NumOfPolls = -1
     log.info "Poll counter reset.."
 forcePoll()
