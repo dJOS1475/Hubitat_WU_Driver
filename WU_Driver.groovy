@@ -19,6 +19,7 @@
  *  Last Update 28/10/2020
  *
  *
+ *	v5.6.1 - Minor Bug Fix 
  *	v5.6.0 - add selectable language eg en-GB or en-US 
  *	v5.5.0 - WU Icons now hosted on GitHub
  *	v5.4.0 - Bug Fixes
@@ -141,7 +142,7 @@ def updated() {
         "runEvery${pollIntervalCmd}"(pollSchedule)
     
      def changeOver = cutOff
-    schedule(changeOver, ResetPollCount)
+    schedule(changeOver, resetPollCount)
     schedule(changeOver, dayRainChange)
     
     if(logSet){runIn(1800, logsOff)}
@@ -380,4 +381,5 @@ def pollHandler2(resp1, data) {
 def logsOff() {
 log.warn "Debug logging disabled..."
 device.updateSetting("logSet", [value: "false", type: "bool"])}
+
 
