@@ -17,7 +17,10 @@ for the specific language governing permissions and limitations under the Licens
 Install by importing this URL: https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy into a new HE Driver
 
 
-Last Update 20/11/2020
+Last Update 17/04/2022
+
+
+v5.6.1 - Minor Bug Fix 
 
 v5.6.0 - add selectable language eg en-GB or en-US 
 
