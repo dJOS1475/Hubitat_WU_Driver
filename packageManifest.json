@@ -4,12 +4,6 @@
   "version": "1.0",
   "minimumHEVersion": "5.6.1",
   "dateReleased": "2022-07-17",
-  "categories": [
-		"Integrations"
- 		],
-  "tags": [
-		"Weather"
-		],
   "drivers": [
     {
       "id": "adde3e52-50ed-4c85-ab5a-786892b8fb71",
