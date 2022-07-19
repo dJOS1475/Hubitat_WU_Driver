@@ -8,6 +8,13 @@
 			"location": "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/packageManifest.json",
 			"description": "Wunderground Driver",
 			"tags": ["Weather"]
+		},
+		{
+			"name": "Netatmo (Connect) - Weather Station",
+			"category": "Integrations",
+			"location": "https://raw.githubusercontent.com/dJOS1475/Hubitat_Netatmo/main/packageManifest.json",
+			"description": "Netatmo (Connect) - Weather Station",
+			"tags": ["Weather"]
 		}
 	]
 	
