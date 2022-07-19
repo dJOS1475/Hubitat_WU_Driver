@@ -1,0 +1,14 @@
+{
+	"author": "Derek Osborn",
+	"gitHubUrl": "https://github.com/dJOS1475",
+	"packages": [
+		{
+			"name": "Enhanced Weather Underground Driver",
+			"category": "Integrations",
+			"location": "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/packageManifest.json",
+			"description": "Wunderground Driver",
+			"tags": ["Weather"]
+		}
+	]
+	
+}
