@@ -3,6 +3,8 @@ Weather Underground Driver for Hubitat
 
 Wunderground Driver - Modified and fixed by @dJOS
 
+--- Now available via Hubitat Package Manager ---
+
 This driver was originally written by @mattw01 and @Cobra
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
