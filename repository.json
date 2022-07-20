@@ -7,14 +7,16 @@
 			"category": "Integrations",
 			"location": "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/packageManifest.json",
 			"description": "Enhanced Wunderground Driver with auto switching of the detailed forecast from Day to Night, Web hosted Weather Icons and more data fields for your automations",
-			"tags": ["Weather"]
+			"tags": ["Weather",
+				"Cloud",]
 		},
 		{
 			"name": "Netatmo (Connect) - Weather Station",
 			"category": "Integrations",
 			"location": "https://raw.githubusercontent.com/dJOS1475/Hubitat_Netatmo/main/packageManifest.json",
 			"description": "Netatmo (Connect) - Weather Station Application and Drivers. Includes some minor enhancements to Dashboard tile views.",
-			"tags": ["Weather"]
+			"tags": ["Weather",
+				"Cloud",]
 		}
 	]
 	
