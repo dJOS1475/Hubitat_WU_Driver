@@ -13,7 +13,7 @@
 			"name": "Netatmo (Connect) - Weather Station",
 			"category": "Integrations",
 			"location": "https://raw.githubusercontent.com/dJOS1475/Hubitat_Netatmo/main/packageManifest.json",
-			"description": "Netatmo (Connect) - Weather Station",
+			"description": "Netatmo (Connect) - Weather Station Application and Drivers. Includes some minor enhancements to Dashboard tile views.",
 			"tags": ["Weather"]
 		}
 	]
