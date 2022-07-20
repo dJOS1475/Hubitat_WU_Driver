@@ -6,7 +6,7 @@
 			"name": "Enhanced Weather Underground Driver",
 			"category": "Integrations",
 			"location": "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/packageManifest.json",
-			"description": "Wunderground Driver",
+			"description": "Enhanced Wunderground Driver with auto switching of the detailed forecast from Day to Night, Web hosted Weather Icons and more data fields for your automations",
 			"tags": ["Weather"]
 		},
 		{
