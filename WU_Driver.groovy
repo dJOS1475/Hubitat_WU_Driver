@@ -19,6 +19,7 @@
  *  Last Update 17/04/2022
  *
  *
+ *	v5.6.2 - Added 6 new fields - Thunder, Snow & UV
  *	v5.6.1 - Minor Bug Fix 
  *	v5.6.0 - add selectable language eg en-GB or en-US 
  *	v5.5.0 - WU Icons now hosted on GitHub
@@ -47,6 +48,12 @@ metadata {
         command "poll"
         command "forcePoll"
  	    command "resetPollCount"
+        attribute "uvDescription", "string"
+        attribute "uvIndex", "number"
+        attribute "snowRange", "number"
+        attribute "qpfSnow", "number"
+        attribute "thunderCategory", "string"
+        attribute "thunderIndex", "number"
         attribute "precipType", "string"
         attribute "solarradiation", "number"
         attribute "illuminance", "number"
@@ -107,7 +114,6 @@ metadata {
         attribute "lastUpdateCheck", "string"
         attribute "lastPollTime", "string"
         attribute "cloudCover", "number"
-
      
         
     }
@@ -335,6 +341,12 @@ def pollHandler2(resp1, data) {
         if(logSet == true){log.debug "Response Data2 = $obs1"}		// log the data returned by WU
             sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0], isStateChange: state.force )
             sendEvent(name: "cloudCover", value: obs1.daypart[0].cloudCover[0], isStateChange: state.force )
+            sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
+            sendEvent(name: "uvIndex", value: obs1.daypart[0].uvIndex[0], isStateChange: state.force )
+            sendEvent(name: "thunderCategory", value: obs1.daypart[0].thunderCategory[0], isStateChange: state.force )
+            sendEvent(name: "thunderIndex", value: obs1.daypart[0].thunderCategory[0], isStateChange: state.force )
+            sendEvent(name: "snowRange", value: obs1.daypart[0].snowRange[0], isStateChange: state.force )
+            sendEvent(name: "qpfSnow", value: obs1.daypart[0].qpfSnow[0], isStateChange: state.force )
             sendEvent(name: "chanceOfRain", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )
 			sendEvent(name: "rainTomorrow", value: obs1.daypart[0].qpf[0], isStateChange: state.force )
             sendEvent(name: "rainDayAfterTomorrow", value: obs1.daypart[0].qpf[1], isStateChange: state.force )
@@ -381,5 +393,6 @@ def pollHandler2(resp1, data) {
 def logsOff() {
 log.warn "Debug logging disabled..."
 device.updateSetting("logSet", [value: "false", type: "bool"])}
+
 
 
