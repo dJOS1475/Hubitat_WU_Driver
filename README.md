@@ -21,6 +21,7 @@ Install by importing this URL: https://raw.githubusercontent.com/dJOS1475/Hubita
 
 Last Update 17/04/2022
 
+v5.6.2 - Added 6 new fields - Thunder, Snow & UV
 
 v5.6.1 - Minor Bug Fix 
 
