@@ -18,7 +18,7 @@
  *
  *  Last Update 23/08/2022
  *
- *
+ *      v5.6.4 - Removed extra fields due to excess events being generated
  *      v5.6.3 - Removed Snow fields due to excess events being generated
  *	v5.6.2 - Added 6 new fields - Thunder, Snow & UV
  *	v5.6.1 - Minor Bug Fix 
@@ -49,10 +49,6 @@ metadata {
         command "poll"
         command "forcePoll"
  	command "resetPollCount"
-        attribute "uvDescription", "string"
-        attribute "uvIndex", "number"
-        attribute "thunderCategory", "string"
-        attribute "thunderIndex", "number"
         attribute "precipType", "string"
         attribute "solarradiation", "number"
         attribute "illuminance", "number"
@@ -340,10 +336,6 @@ def pollHandler2(resp1, data) {
         if(logSet == true){log.debug "Response Data2 = $obs1"}		// log the data returned by WU
             sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0], isStateChange: state.force )
             sendEvent(name: "cloudCover", value: obs1.daypart[0].cloudCover[0], isStateChange: state.force )
-            sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
-            sendEvent(name: "uvIndex", value: obs1.daypart[0].uvIndex[0], isStateChange: state.force )
-            sendEvent(name: "thunderCategory", value: obs1.daypart[0].thunderCategory[0], isStateChange: state.force )
-            sendEvent(name: "thunderIndex", value: obs1.daypart[0].thunderCategory[0], isStateChange: state.force )
             sendEvent(name: "chanceOfRain", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )
 			sendEvent(name: "rainTomorrow", value: obs1.daypart[0].qpf[0], isStateChange: state.force )
             sendEvent(name: "rainDayAfterTomorrow", value: obs1.daypart[0].qpf[1], isStateChange: state.force )
