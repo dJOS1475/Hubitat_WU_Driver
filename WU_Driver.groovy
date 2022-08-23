@@ -18,6 +18,7 @@
  *
  *  Last Update 23/08/2022
  *
+ *      v5.6.5 - Fixed Polling Bug
  *      v5.6.4 - Removed extra fields due to excess events being generated
  *      v5.6.3 - Removed Snow fields due to excess events being generated
  *	v5.6.2 - Added 6 new fields - Thunder, Snow & UV
@@ -48,16 +49,22 @@ metadata {
         command "forceUpdateOff"
         command "poll"
         command "forcePoll"
- 	command "resetPollCount"
+ 	    command "resetPollCount"
+        attribute "uvDescription", "string"
+        attribute "uvIndex", "number"
+        attribute "snowRange", "number"
+        attribute "qpfSnow", "number"
+        attribute "thunderCategory", "string"
+        attribute "thunderIndex", "number"
         attribute "precipType", "string"
         attribute "solarradiation", "number"
         attribute "illuminance", "number"
         attribute "observation_time", "string"
         attribute "weather", "string"
         attribute "feelsLike", "number"
-	attribute "forecastTodayIcon", "string"
+		attribute "forecastTodayIcon", "string"
         attribute "forecastTomorrowIcon", "string"
-	attribute "city", "string"
+		attribute "city", "string"
         attribute "state", "string"
         attribute "percentPrecip", "number"
         attribute "wind_string", "string"
@@ -69,15 +76,15 @@ metadata {
         attribute "forecastToday", "string"
         attribute "forecastTomorrow", "string"
         attribute "forecastTemp", "string"
-	attribute "forecastShort", "string"
+		attribute "forecastShort", "string"
         attribute "wind_dir", "string"
-	attribute "wind_degree", "string"
+		attribute "wind_degree", "string"
         attribute "wind_gust", "number"
         attribute "precip_rate", "number"
         attribute "precip_today", "number"
         attribute "wind", "number"
-	attribute "windPhrase", "string"
-	attribute "windPhraseForecast", "string"
+		attribute "windPhrase", "string"
+		attribute "windPhraseForecast", "string"
         attribute "UV", "number"
        	attribute "UVHarm", "string"
         attribute "pollsSinceReset", "number"
@@ -89,7 +96,7 @@ metadata {
         attribute "alert", "string"
         attribute "elevation", "number"
         attribute "stationID", "string"
-	attribute "stationType", "string"
+		attribute "stationType", "string"
         attribute "weatherSummary", "string"
         attribute "weatherSummaryFormat", "string"
         attribute "chanceOfRain", "number"
@@ -98,11 +105,11 @@ metadata {
         attribute "moonPhase", "string"
         attribute "moonIllumination", "number"
         attribute "latitude", "decimal"
-	attribute "longitude", "decimal"
- 	attribute "DriverAuthor", "string"
+		attribute "longitude", "decimal"
+ 		attribute "DriverAuthor", "string"
         attribute "DriverVersion", "string"
-	attribute "humidity", "number"
-	attribute "station_location", "string"
+		attribute "humidity", "number"
+		attribute "station_location", "string"
         attribute "elevation", "number"
         attribute "rainYesterday", "number"
         attribute "rainDayBeforeYesterday", "number"
@@ -336,6 +343,12 @@ def pollHandler2(resp1, data) {
         if(logSet == true){log.debug "Response Data2 = $obs1"}		// log the data returned by WU
             sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0], isStateChange: state.force )
             sendEvent(name: "cloudCover", value: obs1.daypart[0].cloudCover[0], isStateChange: state.force )
+            sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
+            sendEvent(name: "uvIndex", value: obs1.daypart[0].uvIndex[0], isStateChange: state.force )
+            sendEvent(name: "thunderCategory", value: obs1.daypart[0].thunderCategory[0], isStateChange: state.force )
+            sendEvent(name: "thunderIndex", value: obs1.daypart[0].thunderCategory[0], isStateChange: state.force )
+            sendEvent(name: "snowRange", value: obs1.daypart[0].snowRange[0], isStateChange: state.force )
+            sendEvent(name: "qpfSnow", value: obs1.daypart[0].qpfSnow[0], isStateChange: state.force )
             sendEvent(name: "chanceOfRain", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )
 			sendEvent(name: "rainTomorrow", value: obs1.daypart[0].qpf[0], isStateChange: state.force )
             sendEvent(name: "rainDayAfterTomorrow", value: obs1.daypart[0].qpf[1], isStateChange: state.force )
@@ -382,6 +395,4 @@ def pollHandler2(resp1, data) {
 def logsOff() {
 log.warn "Debug logging disabled..."
 device.updateSetting("logSet", [value: "false", type: "bool"])}
-
-
 
