@@ -18,9 +18,10 @@
  *
  *  Last Update 23/08/2022
  *
- *      v5.6.5 - Fixed Polling Bug
- *      v5.6.4 - Removed extra fields due to excess events being generated
- *      v5.6.3 - Removed Snow fields due to excess events being generated
+ *  v5.7.0 - Added a 3rd day of forecast data "forecastDayAfterTomorrow" including Icon
+ *  v5.6.5 - Fixed Polling Bug
+ *  v5.6.4 - Removed extra fields due to excess events being generated
+ *  v5.6.3 - Removed Snow fields due to excess events being generated
  *	v5.6.2 - Added 6 new fields - Thunder, Snow & UV
  *	v5.6.1 - Minor Bug Fix 
  *	v5.6.0 - add selectable language eg en-GB or en-US 
@@ -64,6 +65,7 @@ metadata {
         attribute "feelsLike", "number"
 		attribute "forecastTodayIcon", "string"
         attribute "forecastTomorrowIcon", "string"
+        attribute "forecastDayAfterTomorrowIcon", "string"
 		attribute "city", "string"
         attribute "state", "string"
         attribute "percentPrecip", "number"
@@ -75,6 +77,7 @@ metadata {
         attribute "forecastLow", "number"
         attribute "forecastToday", "string"
         attribute "forecastTomorrow", "string"
+        attribute "forecastDayAfterTomorrow", "string"
         attribute "forecastTemp", "string"
 		attribute "forecastShort", "string"
         attribute "wind_dir", "string"
@@ -356,7 +359,8 @@ def pollHandler2(resp1, data) {
 			state.forecastTemp = (obs1.daypart[0].narrative[0])
 			if(state.forecastTemp == null){sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[1], isStateChange: state.force )}
             else {sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[0], isStateChange: state.force )}		
-			sendEvent(name: "forecastTomorrow", value: obs1.daypart[0].narrative[2], isStateChange: state.force )  
+			sendEvent(name: "forecastTomorrow", value: obs1.daypart[0].narrative[2], isStateChange: state.force )
+			sendEvent(name: "forecastDayAfterTomorrow", value: obs1.daypart[0].narrative[3], isStateChange: state.force )  
             sendEvent(name: "weather", value: obs1.daypart[0].wxPhraseLong[0], isStateChange: state.force )
             sendEvent(name: "wind_dir", value: obs1.daypart[0].windDirectionCardinal[0], isStateChange: state.force )
 			sendEvent(name: "windPhrase", value: obs1.daypart[0].windPhrase[0], isStateChange: state.force )
@@ -369,17 +373,21 @@ def pollHandler2(resp1, data) {
 			if(useIcons){
 			if(state.forecastTemp == null){	
 			state.iconCode1 = (obs1.daypart[0].iconCode[1])
-			state.iconCode2 = (obs1.daypart[0].iconCode[2])	
+			state.iconCode2 = (obs1.daypart[0].iconCode[2])
+			state.iconCode3 = (obs1.daypart[0].iconCode[3])		
 				}				
 			else{	
 			state.iconCode1 = (obs1.daypart[0].iconCode[0])
-			state.iconCode2 = (obs1.daypart[0].iconCode[2])	
+			state.iconCode2 = (obs1.daypart[0].iconCode[2])
+			state.iconCode3 = (obs1.daypart[0].iconCode[3])		
 				}
             iconURL1 = "https://github.com/dJOS1475/Hubitat_WU_Driver/raw/main/wuIcons/"
             state.icon1 = "<img src='" +iconURL1 +state.iconCode1 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
 			state.icon2 = "<img src='" +iconURL1 +state.iconCode2 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
+			state.icon3 = "<img src='" +iconURL1 +state.iconCode3 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
 			sendEvent(name: "forecastTodayIcon", value: state.icon1, isStateChange: state.force )
 			sendEvent(name: "forecastTomorrowIcon", value: state.icon2, isStateChange: state.force )
+			sendEvent(name: "forecastDayAfterTomorrowIcon", value: state.icon3, isStateChange: state.force )
 			} 
         	     
 
