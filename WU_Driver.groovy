@@ -18,7 +18,8 @@
  *
  *  Last Update 25/09/2022
  *
-  *	v6.0.2 - Tile bug fixes
+ *	v6.1.0 - Broke 3 Day FC into individual tiles due to 10245 char limit
+ *	v6.0.2 - Tile bug fixes
  *	v6.0.1 - Added a 3 Day Forecast Dashboard Tile 
  *			 (thanks to @thebearmay for his extensive assistance and @sburke781 for his help with CSS)
  *	v5.7.0 - Added a 3rd day of forecast data "forecastDayAfterTomorrow" including Icon
@@ -55,7 +56,9 @@ metadata {
         command "forcePoll"
  	    command "resetPollCount"
  	    
- 	    attribute "html", "string"
+ 	    attribute "htmlToday", "string"
+ 	    attribute "htmlTomorrow", "string"
+ 	    attribute "htmlDAT", "string"
 		attribute "today", "string"
 		attribute "tomorrow", "string"
  	    attribute "dayAfterTomorrow", "string"
@@ -246,7 +249,9 @@ def forcePoll(){
     pauseExecution(5000)
 	poll2()
 	pauseExecution(5000)
-    updateTile()
+    updateTile1()
+    updateTile2()
+    updateTile3()
     def date = new Date()
 	        state.LastTime1 = date.format('HH:mm', location.timeZone)
             sendEvent(name: "lastPollTime", value: state.LastTime1)
@@ -420,20 +425,35 @@ log.warn "Debug logging disabled..."
 device.updateSetting("logSet", [value: "false", type: "bool"])}
 
 
-def updateTile() {
-	log.debug "updateTile called"
-	html ="<div style='line-height:1; font-size:1em;'><br>3 Day Forecast<br></div>"
-	html +="<div style='line-height:50%;'><br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('today')}<br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify;'><br>${device.currentValue('forecastToday')}<br></div>"
-	html +="<div style='line-height:50%;'><br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('tomorrow')}<br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastTomorrow')}<br></div>"
-	html +="<div style='line-height:50%;'><br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('dayAfterTomorrow')}<br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
-	sendEvent(name: "html", value: "$html")
-	log.debug "html contains ${html}"
-	log.debug "${html.length()}"
+def updateTile1() {
+	log.debug "updateTile1 called"
+	htmlToday ="<div style='line-height:1; font-size:1em;'><br>Weather Forecast<br></div>"
+	htmlToday +="<div style='line-height:50%;'><br></div>"
+	htmlToday +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('today')}<br></div>"
+	htmlToday +="<div style='line-height:0.95; font-size:0.75em; text-align: justify;'><br>${device.currentValue('forecastToday')}<br></div>"
+	sendEvent(name: "htmlToday", value: "$htmlToday")
+	log.debug "htmlToday contains ${htmlToday}"
+	log.debug "${htmlToday.length()}"
 	}
 	
+	def updateTile2() {
+	log.debug "updateTile2 called"
+	htmlTomorrow ="<div style='line-height:1; font-size:1em;'><br>Weather Forecast<br></div>"
+	htmlTomorrow +="<div style='line-height:50%;'><br></div>"
+	htmlTomorrow +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('tomorrow')}<br></div>"
+	htmlTomorrow +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastTomorrow')}<br></div>"
+	sendEvent(name: "htmlTomorrow", value: "$htmlTomorrow")
+	log.debug "htmlTomorrow contains ${htmlTomorrow}"
+	log.debug "${htmlTomorrow.length()}"
+	}
+	
+	def updateTile3() {
+	log.debug "updateTile3 called"
+	htmlDAT ="<div style='line-height:1; font-size:1em;'><br>Weather Forecast<br></div>"
+	htmlDAT +="<div style='line-height:50%;'><br></div>"
+	htmlDAT +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('dayAfterTomorrow')}<br></div>"
+	htmlDAT +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
+	sendEvent(name: "htmlDAT", value: "$htmlDAT")
+	log.debug "htmlDAT contains ${htmlDAT}"
+	log.debug "${htmlDAT.length()}"
+	}
