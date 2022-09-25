@@ -18,7 +18,7 @@
  *
  *  Last Update 25/09/2022
  *
- *  v6.0.1 - Added a HTML Tile for a 3 Day Forecast Dashboard Tile (thanks to @thebearmay for his extensive help & sburke781 for CSS assistance)
+ *  v6.0.1 - Added a HTML Tile for a 3 Day Forecast Dashboard Tile (thanks to @thebearmay for his extensive help & @sburke781 for CSS assistance)
  *  v5.7.0 - Added a 3rd day of forecast data "forecastDayAfterTomorrow" including Icon
  *  v5.6.5 - Fixed Polling Bug
  *  v5.6.4 - Removed extra fields due to excess events being generated
