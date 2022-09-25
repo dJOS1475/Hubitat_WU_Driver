@@ -16,9 +16,9 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Last Update 23/09/2022
+ *  Last Update 25/09/2022
  *
- *  v6.0.0 - Added HTML Tiles for easier / prettier Dashboard configuration 
+ *  v6.0.1 - Added HTML Tiles for easier / prettier Dashboard configuration (thanks to @thebearmay for his extensive coaching)
  *  v5.7.0 - Added a 3rd day of forecast data "forecastDayAfterTomorrow" including Icon
  *  v5.6.5 - Fixed Polling Bug
  *  v5.6.4 - Removed extra fields due to excess events being generated
@@ -51,10 +51,9 @@ metadata {
         command "forceUpdateOff"
         command "poll"
         command "forcePoll"
-        command "updateTile"
  	    command "resetPollCount"
-
-		attribute "html", "string"
+ 	    
+ 	    attribute "html", "string"
 		attribute "today", "string"
 		attribute "tomorrow", "string"
  	    attribute "dayAfterTomorrow", "string"
@@ -159,7 +158,7 @@ def updated() {
     if(autoPoll)
         "runEvery${pollIntervalCmd}"(pollSchedule)
     
-    def changeOver = cutOff
+     def changeOver = cutOff
     schedule(changeOver, resetPollCount)
     schedule(changeOver, dayRainChange)
     
@@ -179,7 +178,7 @@ def forceUpdateOff(){
 def resetPollCount(){
 	state.NumOfPolls = -1
     log.info "Poll counter reset.."
-    forcePoll()
+forcePoll()
 
 }
 
@@ -237,8 +236,6 @@ def formatUnit(){
 	
 	
 }
-
-
 def forcePoll(){
     if(logSet == true){log.debug "WU: Poll called"}
     state.NumOfPolls = (state.NumOfPolls) + 1
@@ -341,7 +338,6 @@ def poll1(){
     def params1 = [uri: "https://api.weather.com/v2/pws/observations/current?stationId=${pollLocation}&format=json&units=${state.unit}&apiKey=${apiKey}"]
     asynchttpGet("pollHandler1", params1)   
 }
-
 def poll2(){
     formatUnit()
     state.latt1 = (location.getLatitude())
@@ -350,16 +346,12 @@ def poll2(){
     def params2 = [uri: "https://api.weather.com/v3/wx/forecast/daily/5day?geocode=${state.latt1},${state.long1}&units=${state.unit}&language=${state.languagef}&format=json&apiKey=${apiKey}"]
     if(logSet == true){log.debug "Poll2 - state.latt1 = $state.latt1 -- state.long1 = $state.long1"}
     asynchttpGet("pollHandler2", params2)
-
 }
 
 def pollHandler2(resp1, data) {
 	if(resp1.getStatus() == 200 || resp1.getStatus() == 207) {
 		obs1 = parseJson(resp1.data)
         if(logSet == true){log.debug "Response Data2 = $obs1"}		// log the data returned by WU
-            sendEvent(name: "today", value: obs1.dayOfWeek[0], isStateChange: state.force )
-            sendEvent(name: "tomorrow", value: obs1.dayOfWeek[1], isStateChange: state.force )
-            sendEvent(name: "dayAftertomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )
             sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0], isStateChange: state.force )
             sendEvent(name: "cloudCover", value: obs1.daypart[0].cloudCover[0], isStateChange: state.force )
             sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
@@ -384,6 +376,9 @@ def pollHandler2(resp1, data) {
 			sendEvent(name: "forecastHigh", value: obs1.temperatureMax[0], isStateChange: state.force )
 			sendEvent(name: "forecastLow", value: obs1.temperatureMin[0], isStateChange: state.force )
 			sendEvent(name: "moonPhase", value: obs1.moonPhase[0], isStateChange: state.force )
+            sendEvent(name: "today", value: obs1.dayOfWeek[0], isStateChange: state.force )
+            sendEvent(name: "tomorrow", value: obs1.dayOfWeek[1], isStateChange: state.force )
+            sendEvent(name: "dayAfterTomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )
 			sendEvent(name: "UVHarm", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
 			state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
 			if(useIcons){
@@ -416,26 +411,24 @@ def pollHandler2(resp1, data) {
 
 }
 
+
+def updateTile() {
+	log.debug "updateTile called"
+	html = "<table>"
+	html +="<caption>3 Day Forecast</caption>"
+	html +="<tr><th><small>Day: </small></th><td><small> ${device.currentValue('today')} </small></td></tr>"
+	html +="<tr><th><small>Forecast: </small></th><td><small> ${device.currentValue('forecastToday')} </small></td></tr>"
+	html +="<tr><th><small>Day: </small></th><td><small> ${device.currentValue('tomorrow')} </small></td></tr>"
+	html +="<tr><th><small>Forecast: </small></th><td><small> ${device.currentValue('forecastTomorrow')} </small></td></tr>"
+	html +="<tr><th><small>Day: </small></th><td><small> ${device.currentValue('dayAfterTomorrow')} </small></td></tr>"
+	html +="<tr><th><small>Forecast: </small></th><td><small> ${device.currentValue('forecastDayAfterTomorrow')}</small> </td></tr>"
+	html +="</table>"
+	log.debug "html contains ${html}"
+	sendEvent(name: "html", value: "$html")
+	}
+	
+
 def logsOff() {
 log.warn "Debug logging disabled..."
 device.updateSetting("logSet", [value: "false", type: "bool"])}
 
-
-def updateTile() {
-	log.debug "updateTile called"
-	html = ""
-	log.debug "html contains ${html}"
-	html = "<table>"
-	html +="<tr><th>Day: </th><td>${device.currentValue('today')}</td></tr>"
-	html +="<tr><th>Forecast: </th><td> ${device.currentValue('forecastToday')}</td></tr>"
-	html +="<tr><th>Day: </th><td> ${device.currentValue('tomorrow')} </td></tr>"
-	html +="<tr><th>Forecast: </th><td> ${device.currentValue('forecastTomorrow')} </td></tr>"
-	html +="<tr><th>Day: </th><td> ${device.currentValue('dayAfterTomorrow')} </td></tr>"
-	html +="<tr><th>Forecast: </th><td> ${device.currentValue('forecastDayAfterTomorrow')}</td></tr>"
-	html +="</table>"
-	log.debug "html contains ${html}"
-	log.debug "${html.length()}"
-	}
-	
-
-	
