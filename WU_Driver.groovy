@@ -18,7 +18,7 @@
  *
  *  Last Update 25/09/2022
  *
- *  v6.0.1 - Added a HTML Tile for a 3 Day Forecast Dashboard Tile (thanks to @thebearmay for his extensive help & @sburke781 for CSS assistance)
+ *  v6.0.1 - Added HTML Tiles for easier / prettier Dashboard configuration (thanks to @thebearmay for his extensive coaching)
  *  v5.7.0 - Added a 3rd day of forecast data "forecastDayAfterTomorrow" including Icon
  *  v5.6.5 - Fixed Polling Bug
  *  v5.6.4 - Removed extra fields due to excess events being generated
@@ -416,14 +416,14 @@ def updateTile() {
 	log.debug "updateTile called"
 	html ="<div style='line-height:1; font-size:1em;'><br>3 Day Forecast<br></div>"
 	html +="<div style='line-height:50%;'><br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('today')}<br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify;'><br>${device.currentValue('forecastToday')}<br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Day: ${device.currentValue('today')}<br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify;'><br>Forecast: ${device.currentValue('forecastToday')}<br></div>"
 	html +="<div style='line-height:50%;'><br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('tomorrow')}<br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastTomorrow')}<br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Day: ${device.currentValue('tomorrow')}<br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>Forecast: ${device.currentValue('forecastTomorrow')}<br></div>"
 	html +="<div style='line-height:50%;'><br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('dayAfterTomorrow')}<br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Day: ${device.currentValue('dayAfterTomorrow')}<br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>Forecast: ${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
 	log.debug "html contains ${html}"
 	sendEvent(name: "html", value: "$html")
 	}
