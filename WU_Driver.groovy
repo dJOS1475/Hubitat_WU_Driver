@@ -18,7 +18,8 @@
  *
  *  Last Update 25/09/2022
  *
- *	v6.0.1 - Added a 3 Day Forecast HTML Dashboard Tile 
+  *	v6.0.2 - Tile bug fixes
+ *	v6.0.1 - Added a 3 Day Forecast Dashboard Tile 
  *			 (thanks to @thebearmay for his extensive assistance and @sburke781 for his help with CSS)
  *	v5.7.0 - Added a 3rd day of forecast data "forecastDayAfterTomorrow" including Icon
  *	v5.6.5 - Fixed Polling Bug
@@ -354,6 +355,9 @@ def pollHandler2(resp1, data) {
 	if(resp1.getStatus() == 200 || resp1.getStatus() == 207) {
 		obs1 = parseJson(resp1.data)
         if(logSet == true){log.debug "Response Data2 = $obs1"}		// log the data returned by WU
+            sendEvent(name: "today", value: obs1.dayOfWeek[0], isStateChange: state.force )
+            sendEvent(name: "tomorrow", value: obs1.dayOfWeek[1], isStateChange: state.force )
+            sendEvent(name: "dayAftertomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )
             sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0], isStateChange: state.force )
             sendEvent(name: "cloudCover", value: obs1.daypart[0].cloudCover[0], isStateChange: state.force )
             sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
@@ -378,9 +382,6 @@ def pollHandler2(resp1, data) {
 			sendEvent(name: "forecastHigh", value: obs1.temperatureMax[0], isStateChange: state.force )
 			sendEvent(name: "forecastLow", value: obs1.temperatureMin[0], isStateChange: state.force )
 			sendEvent(name: "moonPhase", value: obs1.moonPhase[0], isStateChange: state.force )
-            sendEvent(name: "today", value: obs1.dayOfWeek[0], isStateChange: state.force )
-            sendEvent(name: "tomorrow", value: obs1.dayOfWeek[1], isStateChange: state.force )
-            sendEvent(name: "dayAfterTomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )
 			sendEvent(name: "UVHarm", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
 			state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
 			if(useIcons){
@@ -414,24 +415,24 @@ def pollHandler2(resp1, data) {
 }
 
 
-def updateTile() {
-	log.debug "updateTile called"
-	html ="<div style='line-height:1; font-size:1em;'><br>3 Day Forecast<br></div>"
-	html +="<div style='line-height:50%;'><br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Day: ${device.currentValue('today')}<br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify;'><br>Forecast: ${device.currentValue('forecastToday')}<br></div>"
-	html +="<div style='line-height:50%;'><br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Day: ${device.currentValue('tomorrow')}<br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>Forecast: ${device.currentValue('forecastTomorrow')}<br></div>"
-	html +="<div style='line-height:50%;'><br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Day: ${device.currentValue('dayAfterTomorrow')}<br></div>"
-	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>Forecast: ${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
-	sendEvent(name: "html", value: "$html")
-	log.debug "html contains ${html}"
-	}
-	
-
 def logsOff() {
 log.warn "Debug logging disabled..."
 device.updateSetting("logSet", [value: "false", type: "bool"])}
 
+
+def updateTile() {
+	log.debug "updateTile called"
+	html ="<div style='line-height:1; font-size:1em;'><br>3 Day Forecast<br></div>"
+	html +="<div style='line-height:50%;'><br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('today')}<br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify;'><br>${device.currentValue('forecastToday')}<br></div>"
+	html +="<div style='line-height:50%;'><br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('tomorrow')}<br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastTomorrow')}<br></div>"
+	html +="<div style='line-height:50%;'><br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('dayAfterTomorrow')}<br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
+	sendEvent(name: "html", value: "$html")
+	log.debug "html contains ${html}"
+	}
+	
