@@ -18,7 +18,7 @@
  *
  *  Last Update 25/09/2022
  *
- *	v6.1.0 - Broke 3 Day FC into individual tiles due to 10245 char limit
+ *	v6.1.1 - Broke 3 Day FC into individual tiles due to 10245 char limit
  *	v6.0.2 - Tile bug fixes
  *	v6.0.1 - Added a 3 Day Forecast Dashboard Tile 
  *			 (thanks to @thebearmay for his extensive assistance and @sburke781 for his help with CSS)
@@ -362,7 +362,7 @@ def pollHandler2(resp1, data) {
         if(logSet == true){log.debug "Response Data2 = $obs1"}		// log the data returned by WU
             sendEvent(name: "today", value: obs1.dayOfWeek[0], isStateChange: state.force )
             sendEvent(name: "tomorrow", value: obs1.dayOfWeek[1], isStateChange: state.force )
-            sendEvent(name: "dayAftertomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )
+            sendEvent(name: "dayAfterTomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )
             sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0], isStateChange: state.force )
             sendEvent(name: "cloudCover", value: obs1.daypart[0].cloudCover[0], isStateChange: state.force )
             sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
