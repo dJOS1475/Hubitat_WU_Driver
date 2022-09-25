@@ -434,5 +434,6 @@ def updateTile() {
 	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
 	sendEvent(name: "html", value: "$html")
 	log.debug "html contains ${html}"
+	log.debug "${html.length()}"
 	}
 	
