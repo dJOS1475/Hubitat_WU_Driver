@@ -16,8 +16,9 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Last Update 23/08/2022
+ *  Last Update 25/09/2022
  *
+ *  v6.0.1 - Added a HTML Tile for a 3 Day Forecast Dashboard Tile (thanks to @thebearmay for his extensive help & sburke781 for CSS assistance)
  *  v5.7.0 - Added a 3rd day of forecast data "forecastDayAfterTomorrow" including Icon
  *  v5.6.5 - Fixed Polling Bug
  *  v5.6.4 - Removed extra fields due to excess events being generated
@@ -51,6 +52,11 @@ metadata {
         command "poll"
         command "forcePoll"
  	    command "resetPollCount"
+ 	    
+ 	    attribute "html", "string"
+		attribute "today", "string"
+		attribute "tomorrow", "string"
+ 	    attribute "dayAfterTomorrow", "string"
         attribute "uvDescription", "string"
         attribute "uvIndex", "number"
         attribute "snowRange", "number"
@@ -237,6 +243,8 @@ def forcePoll(){
 	poll1()
     pauseExecution(5000)
 	poll2()
+	pauseExecution(5000)
+    updateTile()
     def date = new Date()
 	        state.LastTime1 = date.format('HH:mm', location.timeZone)
             sendEvent(name: "lastPollTime", value: state.LastTime1)
@@ -368,6 +376,9 @@ def pollHandler2(resp1, data) {
 			sendEvent(name: "forecastHigh", value: obs1.temperatureMax[0], isStateChange: state.force )
 			sendEvent(name: "forecastLow", value: obs1.temperatureMin[0], isStateChange: state.force )
 			sendEvent(name: "moonPhase", value: obs1.moonPhase[0], isStateChange: state.force )
+            sendEvent(name: "today", value: obs1.dayOfWeek[0], isStateChange: state.force )
+            sendEvent(name: "tomorrow", value: obs1.dayOfWeek[1], isStateChange: state.force )
+            sendEvent(name: "dayAfterTomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )
 			sendEvent(name: "UVHarm", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
 			state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
 			if(useIcons){
@@ -399,6 +410,24 @@ def pollHandler2(resp1, data) {
    
 
 }
+
+
+def updateTile() {
+	log.debug "updateTile called"
+	html ="<div style='line-height:1; font-size:1em;'><br>3 Day Forecast<br></div>"
+	html +="<div style='line-height:50%;'><br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('today')}<br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify;'><br>${device.currentValue('forecastToday')}<br></div>"
+	html +="<div style='line-height:50%;'><br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('tomorrow')}<br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastTomorrow')}<br></div>"
+	html +="<div style='line-height:50%;'><br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('dayAfterTomorrow')}<br></div>"
+	html +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
+	log.debug "html contains ${html}"
+	sendEvent(name: "html", value: "$html")
+	}
+	
 
 def logsOff() {
 log.warn "Debug logging disabled..."
