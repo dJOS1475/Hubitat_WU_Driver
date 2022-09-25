@@ -58,7 +58,7 @@ metadata {
  	    
  	    attribute "htmlToday", "string"
  	    attribute "htmlTomorrow", "string"
- 	    attribute "htmlDAT", "string"
+ 	    attribute "htmlDayAfterTomorrow", "string"
 		attribute "today", "string"
 		attribute "tomorrow", "string"
  	    attribute "dayAfterTomorrow", "string"
@@ -449,11 +449,11 @@ def updateTile1() {
 	
 	def updateTile3() {
 	log.debug "updateTile3 called"
-	htmlDAT ="<div style='line-height:1; font-size:1em;'><br>Weather Forecast<br></div>"
-	htmlDAT +="<div style='line-height:50%;'><br></div>"
-	htmlDAT +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('dayAfterTomorrow')}<br></div>"
-	htmlDAT +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
-	sendEvent(name: "htmlDAT", value: "$htmlDAT")
-	log.debug "htmlDAT contains ${htmlDAT}"
-	log.debug "${htmlDAT.length()}"
+	htmlDayAfterTomorrow ="<div style='line-height:1; font-size:1em;'><br>Weather Forecast<br></div>"
+	htmlDayAfterTomorrow +="<div style='line-height:50%;'><br></div>"
+	htmlDayAfterTomorrow +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('dayAfterTomorrow')}<br></div>"
+	htmlDayAfterTomorrow +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
+	sendEvent(name: "htmlDayAfterTomorrow", value: "$htmlDayAfterTomorrow")
+	log.debug "htmlDayAfterTomorrow contains ${htmlDayAfterTomorrow}"
+	log.debug "${htmlDayAfterTomorrow.length()}"
 	}
