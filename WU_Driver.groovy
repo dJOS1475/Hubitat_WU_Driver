@@ -427,7 +427,7 @@ def updateTile1() {
 	htmlToday ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
 	htmlToday +="<div style='line-height:50%;'><br></div>"
 	htmlToday +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('today')}<br></div>"
-	htmlToday +="<div style='line-height:1.0; font-size:0.75em; text-align: center;'><br>${device.currentValue('forecastToday')}<br></div>"
+	htmlToday +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('forecastToday')}<br></div>"
 	sendEvent(name: "htmlToday", value: "$htmlToday")
 	if(logSet == true){log.debug "htmlToday contains ${htmlToday}"}		// log the data returned by WU//	
 	if(logSet == true){log.debug "${htmlToday.length()}"}		// log the data returned by WU//	
@@ -438,7 +438,7 @@ def updateTile1() {
 	htmlTomorrow ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
 	htmlTomorrow +="<div style='line-height:50%;'><br></div>"
 	htmlTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('tomorrow')}<br></div>"
-	htmlTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left'><br>${device.currentValue('forecastTomorrow')}<br></div>"
+	htmlTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('forecastTomorrow')}<br></div>"
 	sendEvent(name: "htmlTomorrow", value: "$htmlTomorrow")
 	if(logSet == true){log.debug "htmlTomorrow contains ${htmlTomorrow}"}		// log the data returned by WU//	
 	if(logSet == true){log.debug "${htmlTomorrow.length()}"}		// log the data returned by WU//	
@@ -449,7 +449,7 @@ def updateTile1() {
 	htmlDayAfterTomorrow ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
 	htmlDayAfterTomorrow +="<div style='line-height:50%;'><br></div>"
 	htmlDayAfterTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('dayAfterTomorrow')}<br></div>"
-	htmlDayAfterTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
+	htmlDayAfterTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
 	sendEvent(name: "htmlDayAfterTomorrow", value: "$htmlDayAfterTomorrow")
 	if(logSet == true){log.debug "htmlDayAfterTomorrow contains ${htmlDayAfterTomorrow}"}		// log the data returned by WU//	
 	if(logSet == true){log.debug "${htmlDayAfterTomorrow.length()}"}		// log the data returned by WU//
