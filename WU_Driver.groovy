@@ -19,7 +19,7 @@
  *  Last Update 25/09/2022
  *
  *	v6.2.0 - Improved formatting, fixed debug.logging and added Station Location to the Tiles
- *	v6.1.1 - Broke 3 Day FC into individual tiles due to 10245 char limit
+ *	v6.1.1 - Broke 3 Day FC into individual tiles due to 1024 char limit
  *	v6.0.2 - Tile bug fixes
  *	v6.0.1 - Added a 3 Day Forecast Dashboard Tile 
  *			 (thanks to @thebearmay for his extensive HTML assistance and @sburke781 for his help with CSS)
