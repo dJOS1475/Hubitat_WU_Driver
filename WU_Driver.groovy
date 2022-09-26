@@ -22,7 +22,7 @@
  *	v6.1.1 - Broke 3 Day FC into individual tiles due to 10245 char limit
  *	v6.0.2 - Tile bug fixes
  *	v6.0.1 - Added a 3 Day Forecast Dashboard Tile 
- *			 (thanks to @thebearmay for his extensive assistance and @sburke781 for his help with CSS)
+ *			 (thanks to @thebearmay for his extensive HTML assistance and @sburke781 for his help with CSS)
  *	v5.7.0 - Added a 3rd day of forecast data "forecastDayAfterTomorrow" including Icon
  *	v5.6.5 - Fixed Polling Bug
  *	v5.6.4 - Removed extra fields due to excess events being generated
