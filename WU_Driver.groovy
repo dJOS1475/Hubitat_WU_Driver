@@ -18,6 +18,7 @@
  *
  *  Last Update 25/09/2022
  *
+ *	v6.2.0 - Improved formatting, fixed debug.logging and added Station Location to the Tiles
  *	v6.1.1 - Broke 3 Day FC into individual tiles due to 10245 char limit
  *	v6.0.2 - Tile bug fixes
  *	v6.0.1 - Added a 3 Day Forecast Dashboard Tile 
@@ -420,40 +421,42 @@ def pollHandler2(resp1, data) {
 }
 
 
-def logsOff() {
-log.warn "Debug logging disabled..."
-device.updateSetting("logSet", [value: "false", type: "bool"])}
-
 
 def updateTile1() {
-	log.debug "updateTile1 called"
-	htmlToday ="<div style='line-height:1; font-size:1em;'><br>Weather Forecast<br></div>"
+	if(logSet == true){log.debug "updateTile1 called"}		// log the data returned by WU//	
+	htmlToday ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
 	htmlToday +="<div style='line-height:50%;'><br></div>"
-	htmlToday +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('today')}<br></div>"
-	htmlToday +="<div style='line-height:0.95; font-size:0.75em; text-align: justify;'><br>${device.currentValue('forecastToday')}<br></div>"
+	htmlToday +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('today')}<br></div>"
+	htmlToday +="<div style='line-height:1.0; font-size:0.75em; text-align: center;'><br>${device.currentValue('forecastToday')}<br></div>"
 	sendEvent(name: "htmlToday", value: "$htmlToday")
-	log.debug "htmlToday contains ${htmlToday}"
-	log.debug "${htmlToday.length()}"
+	if(logSet == true){log.debug "htmlToday contains ${htmlToday}"}		// log the data returned by WU//	
+	if(logSet == true){log.debug "${htmlToday.length()}"}		// log the data returned by WU//	
 	}
 	
 	def updateTile2() {
-	log.debug "updateTile2 called"
-	htmlTomorrow ="<div style='line-height:1; font-size:1em;'><br>Weather Forecast<br></div>"
+	if(logSet == true){log.debug "updateTile2 called"}		// log the data returned by WU//	
+	htmlTomorrow ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
 	htmlTomorrow +="<div style='line-height:50%;'><br></div>"
-	htmlTomorrow +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('tomorrow')}<br></div>"
-	htmlTomorrow +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastTomorrow')}<br></div>"
+	htmlTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('tomorrow')}<br></div>"
+	htmlTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left'><br>${device.currentValue('forecastTomorrow')}<br></div>"
 	sendEvent(name: "htmlTomorrow", value: "$htmlTomorrow")
-	log.debug "htmlTomorrow contains ${htmlTomorrow}"
-	log.debug "${htmlTomorrow.length()}"
+	if(logSet == true){log.debug "htmlTomorrow contains ${htmlTomorrow}"}		// log the data returned by WU//	
+	if(logSet == true){log.debug "${htmlTomorrow.length()}"}		// log the data returned by WU//	
 	}
 	
 	def updateTile3() {
-	log.debug "updateTile3 called"
-	htmlDayAfterTomorrow ="<div style='line-height:1; font-size:1em;'><br>Weather Forecast<br></div>"
+	if(logSet == true){log.debug "updateTile3 called"}		// log the data returned by WU//		
+	htmlDayAfterTomorrow ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
 	htmlDayAfterTomorrow +="<div style='line-height:50%;'><br></div>"
-	htmlDayAfterTomorrow +="<div style='line-height:0.95; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('dayAfterTomorrow')}<br></div>"
-	htmlDayAfterTomorrow +="<div style='line-height:0.95; font-size:0.75em; text-align: justify'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
+	htmlDayAfterTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('dayAfterTomorrow')}<br></div>"
+	htmlDayAfterTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
 	sendEvent(name: "htmlDayAfterTomorrow", value: "$htmlDayAfterTomorrow")
-	log.debug "htmlDayAfterTomorrow contains ${htmlDayAfterTomorrow}"
-	log.debug "${htmlDayAfterTomorrow.length()}"
+	if(logSet == true){log.debug "htmlDayAfterTomorrow contains ${htmlDayAfterTomorrow}"}		// log the data returned by WU//	
+	if(logSet == true){log.debug "${htmlDayAfterTomorrow.length()}"}		// log the data returned by WU//
 	}
+	
+	
+def logsOff() {
+	log.warn "Debug logging disabled..."
+	device.updateSetting("logSet", [value: "false", type: "bool"])}
+
