@@ -18,7 +18,8 @@
  *
  *  Last Update 30/09/2022
  *
-*	v6.2.1 - Fixed Day/Night ForecastDayAfterTomorrow Icon switch over bug
+ *	v6.2.2 - Actually Fixed the Day/Night ForecastDayAfterTomorrow Icon switch over bug
+ *	v6.2.1 - Fixed Day/Night ForecastDayAfterTomorrow Icon switch over bug
  *	v6.2.0 - Improved formatting, fixed debug.logging and added Station Location to the Tiles
  *	v6.1.1 - Broke 3 Day FC into individual tiles due to 1024 char limit
  *	v6.0.2 - Tile bug fixes
@@ -400,7 +401,7 @@ def pollHandler2(resp1, data) {
 			else{	
 			state.iconCode1 = (obs1.daypart[0].iconCode[0])
 			state.iconCode2 = (obs1.daypart[0].iconCode[2])
-			state.iconCode3 = (obs1.daypart[0].iconCode[3])		
+			state.iconCode3 = (obs1.daypart[0].iconCode[4])		
 				}
             iconURL1 = "https://github.com/dJOS1475/Hubitat_WU_Driver/raw/main/wuIcons/"
             state.icon1 = "<img src='" +iconURL1 +state.iconCode1 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
