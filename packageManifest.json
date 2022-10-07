@@ -1,7 +1,7 @@
 {
   "packageName": "Enhanced Weather Underground Driver",
   "author": "Derek Osborn",
-  "version": "6.2.2",
+  "version": "6.2.3",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2022-08-24",
   "drivers": [
