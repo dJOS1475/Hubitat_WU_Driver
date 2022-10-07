@@ -16,8 +16,9 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Last Update 30/09/2022
+ *  Last Update 06/10/2022
  *
+ *  v6.2.3 - Replaced logSet with txtEnable to conform with built-in drivers and consolidate Hubitat Preference Manager entries for better user experience
  *	v6.2.2 - Actually Fixed the Day/Night ForecastDayAfterTomorrow Icon switch over bug
  *	v6.2.1 - Fixed Day/Night ForecastDayAfterTomorrow Icon switch over bug
  *	v6.2.0 - Improved formatting, fixed debug.logging and added Station Location to the Tiles
@@ -150,7 +151,7 @@ metadata {
             input "pollIntervalLimit", "number", title: "Poll Interval Limit:", required: true, defaultValue: 1
             input "autoPoll", "bool", required: false, title: "Enable Auto Poll"
             input "pollInterval", "enum", title: "Auto Poll Interval:", required: false, defaultValue: "5 Minutes", options: ["5 Minutes", "10 Minutes", "15 Minutes", "30 Minutes", "1 Hour", "3 Hours"]
-            input "logSet", "bool", title: "Enable Logging", required: true, defaultValue: false
+            input "txtEnable", "bool", title: "Enable descriptionText logging", required: false, defaultValue: false
             input "cutOff", "time", title: "New Day Starts", required: true
 			
         }
@@ -170,7 +171,7 @@ def updated() {
     schedule(changeOver, resetPollCount)
     schedule(changeOver, dayRainChange)
     
-    if(logSet){runIn(1800, logsOff)}
+    if(txtEnable){runIn(1800, logsOff)}
 }
 
 
@@ -222,30 +223,30 @@ def poll() {
 def formatUnit(){
 	if(unitFormat == "Imperial"){
 		state.unit = "e"
-        if(logSet == true){log.info "state.unit = $state.unit"}
+        if(txtEnable == true){log.info "state.unit = $state.unit"}
 	}
 	if(unitFormat == "Metric"){
 		state.unit = "m"
-        if(logSet == true){log.info "state.unit = $state.unit"}
+        if(txtEnable == true){log.info "state.unit = $state.unit"}
 	}
 	if(unitFormat == "UK Hybrid"){
 		state.unit = "h"
-        if(logSet == true){log.info "state.unit = $state.unit"}
+        if(txtEnable == true){log.info "state.unit = $state.unit"}
 	}
 	if(language == "US"){
 		state.languagef = "en-US"
-		if(logSet == true){log.info "state.languagef = $state.languagef"}
+		if(txtEnable == true){log.info "state.languagef = $state.languagef"}
 	}
 	if(language == "GB"){
 		state.languagef = "en-GB"
-		if(logSet == true){log.info "state.languagef = $state.languagef"}
+		if(txtEnable == true){log.info "state.languagef = $state.languagef"}
 	}
 		
 	
 	
 }
 def forcePoll(){
-    if(logSet == true){log.debug "WU: Poll called"}
+    if(txtEnable == true){log.debug "WU: Poll called"}
     state.NumOfPolls = (state.NumOfPolls) + 1
     sendEvent(name: "pollsSinceReset", value: state.NumOfPolls, isStateChange: state.force )
 	poll1()
@@ -264,7 +265,7 @@ def forcePoll(){
 def pollHandler1(resp, data) {
 	if(resp.getStatus() == 200 || resp.getStatus() == 207) {
 		obs = parseJson(resp.data)
-        if(logSet == true){log.debug "Response Data1 = $obs"}		// log the data returned by WU
+        if(txtEnable == true){log.debug "Response Data1 = $obs"}		// log the data returned by WU
        
     		def illume = (obs.observations.solarRadiation[0])
             if(illume){
@@ -287,7 +288,7 @@ def pollHandler1(resp, data) {
             def long1Saved = (location.getLongitude()) 
             if(latt1Saved == null){sendLocationEvent(name: "lattSaved", value: state.latt1)}
             if(long1Saved == null){sendLocationEvent(name: "longSaved", value: state.long1)}                              
-            if(logSet == true){log.debug "Poll1 - state.latt1 = $state.latt1 -- state.long1 = $state.long1 -- latt1Saved = $latt1Saved -- long1Saved = $long1Saved  "}
+            if(txtEnable == true){log.debug "Poll1 - state.latt1 = $state.latt1 -- state.long1 = $state.long1 -- latt1Saved = $latt1Saved -- long1Saved = $long1Saved  "}
 			sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
 			sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
         if(unitFormat == "Imperial"){
@@ -355,14 +356,14 @@ def poll2(){
     state.long1 = (location.getLongitude())
 
     def params2 = [uri: "https://api.weather.com/v3/wx/forecast/daily/5day?geocode=${state.latt1},${state.long1}&units=${state.unit}&language=${state.languagef}&format=json&apiKey=${apiKey}"]
-    if(logSet == true){log.debug "Poll2 - state.latt1 = $state.latt1 -- state.long1 = $state.long1"}
+    if(txtEnable == true){log.debug "Poll2 - state.latt1 = $state.latt1 -- state.long1 = $state.long1"}
     asynchttpGet("pollHandler2", params2)
 }
 
 def pollHandler2(resp1, data) {
 	if(resp1.getStatus() == 200 || resp1.getStatus() == 207) {
 		obs1 = parseJson(resp1.data)
-        if(logSet == true){log.debug "Response Data2 = $obs1"}		// log the data returned by WU
+        if(txtEnable == true){log.debug "Response Data2 = $obs1"}		// log the data returned by WU
             sendEvent(name: "today", value: obs1.dayOfWeek[0], isStateChange: state.force )
             sendEvent(name: "tomorrow", value: obs1.dayOfWeek[1], isStateChange: state.force )
             sendEvent(name: "dayAfterTomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )
@@ -425,40 +426,39 @@ def pollHandler2(resp1, data) {
 
 
 def updateTile1() {
-	if(logSet == true){log.debug "updateTile1 called"}		// log the data returned by WU//	
+	if(txtEnable == true){log.debug "updateTile1 called"}		// log the data returned by WU//	
 	htmlToday ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
 	htmlToday +="<div style='line-height:50%;'><br></div>"
 	htmlToday +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('today')}<br></div>"
 	htmlToday +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('forecastToday')}<br></div>"
 	sendEvent(name: "htmlToday", value: "$htmlToday")
-	if(logSet == true){log.debug "htmlToday contains ${htmlToday}"}		// log the data returned by WU//	
-	if(logSet == true){log.debug "${htmlToday.length()}"}		// log the data returned by WU//	
+	if(txtEnable == true){log.debug "htmlToday contains ${htmlToday}"}		// log the data returned by WU//	
+	if(txtEnable == true){log.debug "${htmlToday.length()}"}		// log the data returned by WU//	
 	}
 	
 	def updateTile2() {
-	if(logSet == true){log.debug "updateTile2 called"}		// log the data returned by WU//	
+	if(txtEnable == true){log.debug "updateTile2 called"}		// log the data returned by WU//	
 	htmlTomorrow ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
 	htmlTomorrow +="<div style='line-height:50%;'><br></div>"
 	htmlTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('tomorrow')}<br></div>"
 	htmlTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('forecastTomorrow')}<br></div>"
 	sendEvent(name: "htmlTomorrow", value: "$htmlTomorrow")
-	if(logSet == true){log.debug "htmlTomorrow contains ${htmlTomorrow}"}		// log the data returned by WU//	
-	if(logSet == true){log.debug "${htmlTomorrow.length()}"}		// log the data returned by WU//	
+	if(txtEnable == true){log.debug "htmlTomorrow contains ${htmlTomorrow}"}		// log the data returned by WU//	
+	if(txtEnable == true){log.debug "${htmlTomorrow.length()}"}		// log the data returned by WU//	
 	}
 	
 	def updateTile3() {
-	if(logSet == true){log.debug "updateTile3 called"}		// log the data returned by WU//		
+	if(txtEnable == true){log.debug "updateTile3 called"}		// log the data returned by WU//		
 	htmlDayAfterTomorrow ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
 	htmlDayAfterTomorrow +="<div style='line-height:50%;'><br></div>"
 	htmlDayAfterTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('dayAfterTomorrow')}<br></div>"
 	htmlDayAfterTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
 	sendEvent(name: "htmlDayAfterTomorrow", value: "$htmlDayAfterTomorrow")
-	if(logSet == true){log.debug "htmlDayAfterTomorrow contains ${htmlDayAfterTomorrow}"}		// log the data returned by WU//	
-	if(logSet == true){log.debug "${htmlDayAfterTomorrow.length()}"}		// log the data returned by WU//
+	if(txtEnable == true){log.debug "htmlDayAfterTomorrow contains ${htmlDayAfterTomorrow}"}		// log the data returned by WU//	
+	if(txtEnable == true){log.debug "${htmlDayAfterTomorrow.length()}"}		// log the data returned by WU//
 	}
 	
 	
 def logsOff() {
 	log.warn "Debug logging disabled..."
-	device.updateSetting("logSet", [value: "false", type: "bool"])}
-
+	device.updateSetting("txtEnable", [value: "false", type: "bool"])}
