@@ -6,7 +6,7 @@
  *
  *  This driver was originally written by @mattw01 and @Cobra
  *  Modified and fixed by @dJOS
- *  Additional contributions by @thebearmay @sburke781 @swade
+ *  Additional contributions by @thebearmay @sburke781 @Busthead @swade
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
