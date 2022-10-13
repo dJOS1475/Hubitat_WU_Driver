@@ -16,9 +16,10 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Last Update 06/10/2022
+ *  Last Update 10/13/2022
  *
- *  v6.2.3 - Replaced logSet with txtEnable to conform with built-in drivers and consolidate Hubitat Preference Manager entries for better user experience
+ *	v6.2.4 - Not all instances of log.info were checking if txtEnable == true
+ *	v6.2.3 - Replaced logSet with txtEnable to conform with built-in drivers and consolidate Hubitat Preference Manager entries for better user experience
  *	v6.2.2 - Actually Fixed the Day/Night ForecastDayAfterTomorrow Icon switch over bug
  *	v6.2.1 - Fixed Day/Night ForecastDayAfterTomorrow Icon switch over bug
  *	v6.2.0 - Improved formatting, fixed debug.logging and added Station Location to the Tiles
@@ -177,16 +178,16 @@ def updated() {
 
 def forceUpdateOn(){
     state.force = true 
-    log.info "Force attribute refresh set to 'true'"
+    if(txtEnable == true){log.info "Force attribute refresh set to 'true'"}
 }
 def forceUpdateOff(){
     state.force = null
-    log.info "Force attribute refresh set to 'false'"
+    if(txtEnable == true){log.info "Force attribute refresh set to 'false'"}
 }
 
 def resetPollCount(){
 	state.NumOfPolls = -1
-    log.info "Poll counter reset.."
+    if(txtEnable == true){log.info "Poll counter reset.."}
 forcePoll()
 
 }
