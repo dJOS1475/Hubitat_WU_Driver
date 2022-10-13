@@ -2,10 +2,11 @@
 /**
  * Wunderground Driver
  *
- *  Derek Osborn
+ *  Maintained by Derek Osborn
  *
  *  This driver was originally written by @mattw01 and @Cobra
- *  Modified and fixed by myself: @dJOS
+ *  Modified and fixed by @dJOS
+ *  Additional contributions by @thebearmay @sburke781 @swade
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
@@ -16,8 +17,9 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Last Update 10/13/2022
+ *  Last Update 10/14/2022
  *
+ *	v6.3.0 - Added 3 Day Weather Forecast Dashboard tile and additional data ingestion developed by @swade 
  *	v6.2.4 - Not all instances of log.info were checking if txtEnable == true
  *	v6.2.3 - Replaced logSet with txtEnable to conform with built-in drivers and consolidate Hubitat Preference Manager entries for better user experience
  *	v6.2.2 - Actually Fixed the Day/Night ForecastDayAfterTomorrow Icon switch over bug
@@ -60,6 +62,23 @@ metadata {
         command "poll"
         command "forcePoll"
  	    command "resetPollCount"
+ 	    
+ 	    attribute "html3dayfcst", "string"
+ 	    attribute "temperatureMaxToday", "string"
+    	attribute "temperatureMaxTomorrow", "string"
+	    attribute "temperatureMaxDayAfterTomorrow", "string"
+	    attribute "temperatureMinToday", "string"
+	    attribute "temperatureMinTomorrow", "string"
+	    attribute "temperatureMinDayAfterTomorrow", "string"
+	    attribute "forcastPhraseToday", "string"
+	    attribute "forcastPhraseTomorrow", "string"
+	    attribute "forcastPhraseDayAfterTomorrow", "string"
+	    attribute "precipChanceToday", "string"
+ 	    attribute "precipChanceTomorrow", "string"
+	    attribute "precipChanceDayAfterTomorrow", "string"
+	    attribute "sunriseTimeLocal", "String"
+	    attribute "sunsetTimeLocal", "String"
+	    attribute "html3dayfcst", "string"
  	    
  	    attribute "htmlToday", "string"
  	    attribute "htmlTomorrow", "string"
@@ -257,6 +276,7 @@ def forcePoll(){
     updateTile1()
     updateTile2()
     updateTile3()
+    wu3dayfcst()
     def date = new Date()
 	        state.LastTime1 = date.format('HH:mm', location.timeZone)
             sendEvent(name: "lastPollTime", value: state.LastTime1)
@@ -365,6 +385,20 @@ def pollHandler2(resp1, data) {
 	if(resp1.getStatus() == 200 || resp1.getStatus() == 207) {
 		obs1 = parseJson(resp1.data)
         if(txtEnable == true){log.debug "Response Data2 = $obs1"}		// log the data returned by WU
+            sendEvent(name: "temperatureMaxToday", value: obs1.temperatureMax[0], isStateChange: state.force )
+            sendEvent(name: "temperatureMaxTomorrow", value: obs1.temperatureMax[1], isStateChange: state.force )
+            sendEvent(name: "temperatureMaxDayAfterTomorrow", value: obs1.temperatureMax[2], isStateChange: state.force )
+            sendEvent(name: "temperatureMinToday", value: obs1.temperatureMin[0], isStateChange: state.force )
+            sendEvent(name: "temperatureMinTomorrow", value: obs1.temperatureMin[1], isStateChange: state.force )
+            sendEvent(name: "temperatureMinDayAfterTomorrow", value: obs1.temperatureMin[2], isStateChange: state.force )
+            sendEvent(name: "forcastPhraseToday", value: obs1.daypart[0].wxPhraseLong[0], isStateChange: state.force )
+            sendEvent(name: "forcastPhraseTomorrow", value: obs1.daypart[0].wxPhraseLong[1], isStateChange: state.force )
+            sendEvent(name: "forcastPhraseDayAfterTomorrow", value: obs1.daypart[0].wxPhraseLong[2], isStateChange: state.force )
+            sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )
+            sendEvent(name: "precipChanceTomorrow", value: obs1.daypart[0].precipChance[1], isStateChange: state.force )
+            sendEvent(name: "precipChanceDayAfterTomorrow", value: obs1.daypart[0].precipChance[2], isStateChange: state.force )
+            sendEvent(name: "sunsetTimeLocal", value: obs1.sunsetTimeLocal[0], isStateChange: state.force )
+            sendEvent(name: "sunriseTimeLocal", value: obs1.sunriseTimeLocal[0], isStateChange: state.force )            
             sendEvent(name: "today", value: obs1.dayOfWeek[0], isStateChange: state.force )
             sendEvent(name: "tomorrow", value: obs1.dayOfWeek[1], isStateChange: state.force )
             sendEvent(name: "dayAfterTomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )
@@ -458,6 +492,157 @@ def updateTile1() {
 	if(txtEnable == true){log.debug "htmlDayAfterTomorrow contains ${htmlDayAfterTomorrow}"}		// log the data returned by WU//	
 	if(txtEnable == true){log.debug "${htmlDayAfterTomorrow.length()}"}		// log the data returned by WU//
 	}
+
+def wu3dayfcst() {
+
+    String sTD='<td>'
+    String sTR='<tr><td>'
+    String iconSunrise = '<img src=https://tinyurl.com/icnqz/wsr.png>'
+    String iconSunset = '<img src=https://tinyurl.com/icnqz/wss.png>'
+    String degreeSign
+    
+    if(state.unit == "e")
+    {
+        degreeSign = "°F"
+    }
+    else
+        if(state.unit == "m")
+        {
+        degreeSign = "°C"
+        }
+        else
+            if(state.unit == "h")
+            {
+                degreeSign = "°C"
+            }
+
+    if(logSet == true){log.info "state.unit = $state.unit"}
+    if(logSet == true){log.info "DegreeSign = $degreeSign"}
+
+
+    int Tstart = "${device.currentValue('sunriseTimeLocal')}".indexOf('T')
+    int Tstop1 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstart)
+    int Tstop2 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstop1+1)
+    String sunriseLocal = "${device.currentValue('sunriseTimeLocal')}".substring(Tstart+1, Tstop2)
+    String strSunrise = "${convert24to12(sunriseLocal)}" 
+    if(logSet == true){log.info "Sunset = $sunsetLocal"}
+
+    Tstart = "${device.currentValue('sunsetTimeLocal')}".indexOf('T')
+    Tstop1 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstart)
+    Tstop2 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstop1+1)
+    String sunsetLocal = "${device.currentValue('sunsetTimeLocal')}".substring(Tstart+1, Tstop2)
+    String strSunset = "${convert24to12(sunsetLocal)}"
+    if(logSet == true){log.info "Sunrise = $sunriseLocal"}
+    
+    String strRainToday = ''
+    BigDecimal rainToday = "${device.currentValue('precip_today')}".toBigDecimal()
+    if(logSet == true){log.info "rainToday = $rainToday"}
+    if(rainToday > 0.00)
+    {
+        strRainToday = ' / ' + rainToday.toString()
+    }
+    
+    String lastPoll = convert24to12("${device.currentValue('lastPollTime')}")
+    
+	String my3day
+	my3day = '<table >'
+    my3day += '<TR>' 
+	my3day += '<th>' + "<B> ${device.currentValue('station_location')}</B>" + '</th>'
+	my3day += '<th style="min-width:5%"></th>'
+	my3day += '<th>Today</th>'
+	my3day += '<th style="min-width:5%"></th>'
+	my3day += '<th>' + "${device.currentValue('tomorrow')}" + '</th>'
+	my3day += '<th style="min-width:5%"></th>'
+	my3day += '<th>' + "${device.currentValue('dayAfterTomorrow')}" + '</th>'
+    my3day += sTR
+    my3day += "Now " + "${device.currentValue('temperature')} " + degreeSign + "<br>Feels ${device.currentValue('feelsLike')} "+ degreeSign + "<br>Humidity ${device.currentValue('humidity')}" + '%'
+	my3day += sTD
+	my3day += sTD + "${device.currentValue('forecastTodayIcon')}" 
+	my3day += sTD
+	my3day += sTD + "${device.currentValue('forecastTomorrowIcon')}" 
+	my3day += sTD
+	my3day += sTD + "${device.currentValue('forecastDayAfterTomorrowIcon')}"
+	my3day += sTR
+	my3day += ""
+	my3day += sTD
+	my3day += sTD + "${device.currentValue('forcastPhraseToday')}"
+	my3day += sTD
+	my3day += sTD + "${device.currentValue('forcastPhraseTomorrow')}"
+	my3day += sTD
+	my3day += sTD + "${device.currentValue('forcastPhraseDayAfterTomorrow')}"
+	my3day += sTR
+	my3day += 'High/Low'
+	my3day += sTD
+	my3day += sTD + "${device.currentValue('temperatureMaxToday')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinToday')}" + degreeSign
+	my3day += sTD
+	my3day += sTD + "${device.currentValue('temperatureMaxTomorrow')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinTomorrow')}" + degreeSign
+	my3day += sTD
+	my3day += sTD + "${device.currentValue('temperatureMaxDayAfterTomorrow')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinDayAfterTomorrow')}" + degreeSign 
+	my3day += sTR
+	my3day += 'Chance Precip' 
+	my3day += sTD
+	my3day += sTD + "${device.currentValue('precipChanceToday')}" + "%" + strRainToday 
+	my3day += sTD
+	my3day += sTD + "${device.currentValue('precipChanceTomorrow')}" + "%" 
+	my3day += sTD
+	my3day += sTD + "${device.currentValue('precipChanceDayAfterTomorrow')}" + "%" 
+    my3day += '<tr> <td colspan="7">'  //blank line
+    my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+	my3day += '</table>'
+
+    if(logSet == true){log.info 'html3dayfcst length: (' + my3day.length() + ')'}
+
+    if(my3day.length() > 1024) {
+		log.error('Too much data to display.</br></br>Current threedayfcstTile length (' + my3day.length() + ') exceeds maximum tile length by ' + (my3day.length() - 1024).toString()  + ' characters.')
+        my3day = '<table>' + sTR + 'Error! Tile greater than 1024 characters. ' + sTR + my3day.length() + ' exceeds maximum tile length by ' + (my3day.length() - 1024).toString() + ' characters.' + sTR + 'Replacing 3 day with todays forecast<br>' + "${device.currentValue('htmlToday')}" + '</table>'
+	}
+	sendEvent(name: 'html3dayfcst', value: my3day.take(1024))
+
+}
+	
+String convert24to12(String input )
+{
+    if ( input.indexOf(":") == -1 )  
+        throw ("")
+
+    final String []temp = input.split(":")
+
+    if ( temp.size() != 2 )
+        throw ("")  // Add your throw code
+                    // This does not support time string with seconds
+
+    int h = temp[0] as int  // if h or m is not a number then exception
+    int m = temp[1] as int  // java.lang.NumberFormatException will be raised
+                            // that can be cached or just terminate the program
+    String dn
+
+    if ( h < 0 || h > 23 )
+        throw("")  // add your own throw code
+                   // hour can't be less than 0 or larger than 24
+
+    if ( m < 0 || m > 59 )
+        throw("")  // add your own throw code 
+                   // minutes can't be less than 0 or larger than 60
+    
+    String mPad = ""
+    String strM = m.toString()
+    if ( strM.length() == 1 )
+        mPad = "0" // minutes less the 1 char append a zero
+    
+    if ( h == 0 ){
+        h = 12
+        dn = "AM"
+    } else if ( h == 12 ) {
+        dn = "PM"
+    } else if ( h > 12 ) {
+        h = h - 12
+        dn = "PM"
+    } else {
+        dn = "AM"
+    }
+
+    return h.toString() + ":" + mPad + m.toString() + " " + dn.toString()
+}
 	
 	
 def logsOff() {
