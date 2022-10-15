@@ -19,6 +19,7 @@
  *
  *  Last Update 10/14/2022
  *
+ *	v6.3.1 - Bug Fix for null on line 538 error
  *	v6.3.0 - Added 3 Day Weather Forecast Dashboard tile and additional data ingestion developed by @swade 
  *	v6.2.4 - Not all instances of log.info were checking if txtEnable == true
  *	v6.2.3 - Replaced logSet with txtEnable to conform with built-in drivers and consolidate Hubitat Preference Manager entries for better user experience
@@ -534,13 +535,17 @@ def wu3dayfcst() {
     String strSunset = "${convert24to12(sunsetLocal)}"
     if(logSet == true){log.info "Sunrise = $sunriseLocal"}
     
-    String strRainToday = ''
-    BigDecimal rainToday = "${device.currentValue('precip_today')}".toBigDecimal()
-    if(logSet == true){log.info "rainToday = $rainToday"}
-    if(rainToday > 0.00)
+        String strRainToday = ''
+    if("${device.currentValue('precip_today')}" != '')
     {
-        strRainToday = ' / ' + rainToday.toString()
+        BigDecimal rainToday = "${device.currentValue('precip_today')}".toBigDecimal()
+        if(rainToday > 0.00)
+        {
+            strRainToday = ' / ' + rainToday.toString()
+        }
     }
+
+    if(logSet == true){log.info "rainToday = $rainToday"}
     
     String lastPoll = convert24to12("${device.currentValue('lastPollTime')}")
     
