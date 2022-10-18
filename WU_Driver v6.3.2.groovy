@@ -19,6 +19,7 @@
  *
  *  Last Update 10/14/2022
  *
+ *	v6.3.2 - Implement Day/night switching for Rain forecast
  *	v6.3.1 - Bug Fix for null on line 538 error
  *	v6.3.0 - Added 3 Day Weather Forecast Dashboard tile and additional data ingestion developed by @swade 
  *	v6.2.4 - Not all instances of log.info were checking if txtEnable == true
