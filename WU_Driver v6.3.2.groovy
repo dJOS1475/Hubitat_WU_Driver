@@ -434,13 +434,18 @@ def pollHandler2(resp1, data) {
             sendEvent(name: "fCstRainDayAfterTomorrow", value: obs1.daypart[0].qpf[1], isStateChange: state.force )
             
 			sendEvent(name: "forecastShort", value: obs1.narrative[0], isStateChange: state.force )
-			state.forecastTemp = (obs1.daypart[0].narrative[0])
-			if(state.forecastTemp == null){sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[1], isStateChange: state.force )}
+			
+			state.forecastToday = (obs1.daypart[0].narrative[0])
+			if(state.forecastToday == null){sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[1], isStateChange: state.force )}
             else {sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[0], isStateChange: state.force )}	
-            	
+                        	
 			sendEvent(name: "forecastTomorrow", value: obs1.daypart[0].narrative[2], isStateChange: state.force )
 			sendEvent(name: "forecastDayAfterTomorrow", value: obs1.daypart[0].narrative[4], isStateChange: state.force )  
-            sendEvent(name: "weather", value: obs1.daypart[0].wxPhraseLong[0], isStateChange: state.force )
+			
+            state.weather = (obs1.daypart[0].narrative[0])
+			if(state.weather == null){sendEvent(name: "weather", value: (obs1.daypart[0].narrative[1]), isStateChange: state.force )}
+            else {sendEvent(name: "weather", value: (obs1.daypart[0].narrative[0]), isStateChange: state.force )}	   
+            
             sendEvent(name: "wind_dir", value: obs1.daypart[0].windDirectionCardinal[0], isStateChange: state.force )
 			sendEvent(name: "windPhrase", value: obs1.daypart[0].windPhrase[0], isStateChange: state.force )
 			sendEvent(name: "windPhraseForecast", value: obs1.daypart[0].windPhrase[1], isStateChange: state.force )
@@ -448,6 +453,7 @@ def pollHandler2(resp1, data) {
 			sendEvent(name: "forecastLow", value: obs1.temperatureMin[0], isStateChange: state.force )
 			sendEvent(name: "moonPhase", value: obs1.moonPhase[0], isStateChange: state.force )
 			sendEvent(name: "UVHarm", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
+			
 			state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
 			if(useIcons){
 			if(state.forecastTemp == null){	
