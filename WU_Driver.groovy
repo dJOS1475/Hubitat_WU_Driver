@@ -19,6 +19,7 @@
  *
  *  Last Update 10/18/2022
  *
+ *	v6.5.1 - Implement Weather Warnings and Codes 
  *	v6.4.0 - Implement Day/night switching for most forecast items
  *	v6.3.2 - Fix a rain forecast bug
  *	v6.3.1 - Bug Fix for null on line 538 error
@@ -157,6 +158,12 @@ metadata {
         attribute "lastUpdateCheck", "string"
         attribute "lastPollTime", "string"
         attribute "cloudCover", "number"
+        attribute "weatherWarning", "string"
+        attribute "weatherWarningCode", "string"
+        attribute "weatherWarningTomorrow", "string"
+        attribute "weatherWarningCodeTomorrow", "string"
+		attribute "weatherWarningDATomorrow", "string"
+        attribute "weatherWarningCodeDATomorrow", "string"
      
         
     }
@@ -452,16 +459,46 @@ def pollHandler2(resp1, data) {
 			sendEvent(name: "UVHarm", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )	
 			
 			state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
+				if(state.dayOrNight == null){	
+				state.weatherWarning = (obs1.daypart[0].qualifierPhrase[1])
+				if(state.weatherWarning == null){sendEvent(name: "weatherWarning", value: "None", isStateChange: state.force )}
+				else {sendEvent(name: "weatherWarning", value: (obs1.daypart[0].qualifierPhrase[1]), isStateChange: state.force )}	             		
+				state.weatherWarningCode = (obs1.daypart[0].qualifierCode[1])
+				if(state.weatherWarningCode == null){sendEvent(name: "weatherWarningCode", value: "None", isStateChange: state.force )}
+				else {sendEvent(name: "weatherWarningCode", value: (obs1.daypart[0].qualifierCode[1]), isStateChange: state.force )}	}            
+            else{	
+				state.weatherWarning = (obs1.daypart[0].qualifierPhrase[0])
+				if(state.weatherWarning == null){sendEvent(name: "weatherWarning", value: "None", isStateChange: state.force )}
+				else {sendEvent(name: "weatherWarning", value: (obs1.daypart[0].qualifierPhrase[0]), isStateChange: state.force )}	             		
+				state.weatherWarningCode = (obs1.daypart[0].qualifierCode[0])
+				if(state.weatherWarningCode == null){sendEvent(name: "weatherWarningCode", value: "None", isStateChange: state.force )}
+				else {sendEvent(name: "weatherWarningCode", value: (obs1.daypart[0].qualifierCode[0]), isStateChange: state.force )}         }
+					
+			state.weatherWarningTommorrow = (obs1.daypart[0].qualifierPhrase[2])
+			if(state.weatherWarningTomorrow == null){sendEvent(name: "weatherWarningTomorrow", value: "None", isStateChange: state.force )}
+			else {sendEvent(name: "weatherWarningTomorrow", value: (obs1.daypart[0].qualifierPhrase[2]), isStateChange: state.force )}	              		
+			state.weatherWarningCodeTomorrow = (obs1.daypart[0].qualifierCode[2])
+			if(state.weatherWarningCodeTomorrow == null){sendEvent(name: "weatherWarningCodeTomorrow", value: "None", isStateChange: state.force )}
+			else {sendEvent(name: "weatherWarningCodeTomorrow", value: (obs1.daypart[0].qualifierCode[2]), isStateChange: state.force )}
+			 		
+			state.weatherWarningDATomorrow = (obs1.daypart[0].qualifierPhrase[4])
+			if(state.weatherWarningDATomorrow == null){sendEvent(name: "weatherWarningDATomorrow", value: "None", isStateChange: state.force )}
+			else {sendEvent(name: "weatherWarningDATomorrow", value: (obs1.daypart[0].qualifierPhrase[4]), isStateChange: state.force )}	              		
+			state.weatherWarningCodeDATomorrow = (obs1.daypart[0].qualifierCode[4])
+			if(state.weatherWarningCodeDATomorrow == null){sendEvent(name: "weatherWarningCodeDATomorrow", value: "None", isStateChange: state.force )}
+			else {sendEvent(name: "weatherWarningCodeDATomorrow", value: (obs1.daypart[0].qualifierCode[4]), isStateChange: state.force )}
+            
+			state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
 			if(useIcons){
 			if(state.dayOrNight == null){	
-			state.iconCode1 = (obs1.daypart[0].iconCode[1])
-			state.iconCode2 = (obs1.daypart[0].iconCode[2])
-			state.iconCode3 = (obs1.daypart[0].iconCode[4])		
+				state.iconCode1 = (obs1.daypart[0].iconCode[1])
+				state.iconCode2 = (obs1.daypart[0].iconCode[2])
+				state.iconCode3 = (obs1.daypart[0].iconCode[4])		
 				}				
 			else{	
-			state.iconCode1 = (obs1.daypart[0].iconCode[0])
-			state.iconCode2 = (obs1.daypart[0].iconCode[2])
-			state.iconCode3 = (obs1.daypart[0].iconCode[4])		
+				state.iconCode1 = (obs1.daypart[0].iconCode[0])
+				state.iconCode2 = (obs1.daypart[0].iconCode[2])
+				state.iconCode3 = (obs1.daypart[0].iconCode[4])		
 				}
             iconURL1 = "https://github.com/dJOS1475/Hubitat_WU_Driver/raw/main/wuIcons/"
             state.icon1 = "<img src='" +iconURL1 +state.iconCode1 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
