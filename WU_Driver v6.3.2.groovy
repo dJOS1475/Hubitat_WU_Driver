@@ -139,9 +139,9 @@ metadata {
 		attribute "stationType", "string"
         attribute "weatherSummary", "string"
         attribute "weatherSummaryFormat", "string"
-        attribute "chanceOfRain", "number"
-        attribute "rainTomorrow", "number"
-        attribute "rainDayAfterTomorrow", "number"
+        attribute "fCstRainToday", "number"
+        attribute "fCstRainTomorrow", "number"
+        attribute "fCstRainDayAfterTomorrow", "number"
         attribute "moonPhase", "string"
         attribute "moonIllumination", "number"
         attribute "latitude", "decimal"
@@ -411,24 +411,35 @@ def pollHandler2(resp1, data) {
             sendEvent(name: "today", value: obs1.dayOfWeek[0], isStateChange: state.force )
             sendEvent(name: "tomorrow", value: obs1.dayOfWeek[1], isStateChange: state.force )
             sendEvent(name: "dayAfterTomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )
-            sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0], isStateChange: state.force )
             
-            sendEvent(name: "cloudCover", value: obs1.daypart[0].cloudCover[0], isStateChange: state.force )
+            state.precipType = (obs1.daypart[0].precipChance[0])
+			if(state.precipType == null){sendEvent(name: "precipType", value: obs1.daypart[0].precipType[1], isStateChange: state.force )}
+            else {sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0], isStateChange: state.force )}  
+            
+            state.cloudCover = (obs1.daypart[0].precipChance[0])
+			if(state.cloudCover == null){sendEvent(name: "cloudCover", value: obs1.daypart[0].precipChance[1], isStateChange: state.force )}
+            else {sendEvent(name: "cloudCover", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )} 
+            
             sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
             sendEvent(name: "uvIndex", value: obs1.daypart[0].uvIndex[0], isStateChange: state.force )
             sendEvent(name: "thunderCategory", value: obs1.daypart[0].thunderCategory[0], isStateChange: state.force )
             sendEvent(name: "thunderIndex", value: obs1.daypart[0].thunderCategory[0], isStateChange: state.force )
             sendEvent(name: "snowRange", value: obs1.daypart[0].snowRange[0], isStateChange: state.force )
             sendEvent(name: "qpfSnow", value: obs1.daypart[0].qpfSnow[0], isStateChange: state.force )
-            sendEvent(name: "chanceOfRain", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )
-			sendEvent(name: "rainTomorrow", value: obs1.daypart[0].qpf[0], isStateChange: state.force )
-            sendEvent(name: "rainDayAfterTomorrow", value: obs1.daypart[0].qpf[1], isStateChange: state.force )
+            
+			state.fCstRainToday = (obs1.daypart[0].qpf[0])
+			if(state.fCstRainToday == null){sendEvent(name: "fCstRainToday", value: obs1.daypart[0].qpf[1], isStateChange: state.force )}
+            else {sendEvent(name: "fCstRainToday", value: obs1.daypart[0].qpf[0], isStateChange: state.force )}	            
+			sendEvent(name: "fCstRainTomorrow", value: obs1.daypart[0].qpf[2], isStateChange: state.force )
+            sendEvent(name: "fCstRainDayAfterTomorrow", value: obs1.daypart[0].qpf[1], isStateChange: state.force )
+            
 			sendEvent(name: "forecastShort", value: obs1.narrative[0], isStateChange: state.force )
 			state.forecastTemp = (obs1.daypart[0].narrative[0])
 			if(state.forecastTemp == null){sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[1], isStateChange: state.force )}
-            else {sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[0], isStateChange: state.force )}		
+            else {sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[0], isStateChange: state.force )}	
+            	
 			sendEvent(name: "forecastTomorrow", value: obs1.daypart[0].narrative[2], isStateChange: state.force )
-			sendEvent(name: "forecastDayAfterTomorrow", value: obs1.daypart[0].narrative[3], isStateChange: state.force )  
+			sendEvent(name: "forecastDayAfterTomorrow", value: obs1.daypart[0].narrative[4], isStateChange: state.force )  
             sendEvent(name: "weather", value: obs1.daypart[0].wxPhraseLong[0], isStateChange: state.force )
             sendEvent(name: "wind_dir", value: obs1.daypart[0].windDirectionCardinal[0], isStateChange: state.force )
 			sendEvent(name: "windPhrase", value: obs1.daypart[0].windPhrase[0], isStateChange: state.force )
