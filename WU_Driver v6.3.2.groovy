@@ -402,8 +402,9 @@ def pollHandler2(resp1, data) {
 			if(state.precipChanceToday == null){sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[1], isStateChange: state.force )}
             else {sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )}
             
-            sendEvent(name: "precipChanceTomorrow", value: obs1.daypart[0].precipChance[1], isStateChange: state.force )
-            sendEvent(name: "precipChanceDayAfterTomorrow", value: obs1.daypart[0].precipChance[2], isStateChange: state.force )
+            sendEvent(name: "precipChanceTomorrow", value: obs1.daypart[0].precipChance[2], isStateChange: state.force )
+            sendEvent(name: "precipChanceDayAfterTomorrow", value: obs1.daypart[0].precipChance[4], isStateChange: state.force )
+            
             sendEvent(name: "sunsetTimeLocal", value: obs1.sunsetTimeLocal[0], isStateChange: state.force )
             sendEvent(name: "sunriseTimeLocal", value: obs1.sunriseTimeLocal[0], isStateChange: state.force )            
             sendEvent(name: "today", value: obs1.dayOfWeek[0], isStateChange: state.force )
