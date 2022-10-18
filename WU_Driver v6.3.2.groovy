@@ -393,15 +393,16 @@ def pollHandler2(resp1, data) {
             sendEvent(name: "temperatureMinToday", value: obs1.temperatureMin[0], isStateChange: state.force )
             sendEvent(name: "temperatureMinTomorrow", value: obs1.temperatureMin[1], isStateChange: state.force )
             sendEvent(name: "temperatureMinDayAfterTomorrow", value: obs1.temperatureMin[2], isStateChange: state.force )
-            sendEvent(name: "forcastPhraseToday", value: obs1.daypart[0].wxPhraseLong[0], isStateChange: state.force )
-            sendEvent(name: "forcastPhraseTomorrow", value: obs1.daypart[0].wxPhraseLong[1], isStateChange: state.force )
-            sendEvent(name: "forcastPhraseDayAfterTomorrow", value: obs1.daypart[0].wxPhraseLong[2], isStateChange: state.force )
             
-             //           sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )
+            state.forcastPhraseToday = (obs1.daypart[0].wxPhraseLong[0])
+			if(state.forcastPhraseToday == null){sendEvent(name: "forcastPhraseToday", value: obs1.daypart[0].wxPhraseLong[1], isStateChange: state.force )}
+            else {sendEvent(name: "forcastPhraseToday", value: obs1.daypart[0].wxPhraseLong[0], isStateChange: state.force )}            
+            sendEvent(name: "forcastPhraseTomorrow", value: obs1.daypart[0].wxPhraseLong[2], isStateChange: state.force )
+            sendEvent(name: "forcastPhraseDayAfterTomorrow", value: obs1.daypart[0].wxPhraseLong[4], isStateChange: state.force )
+            
             state.precipChanceToday = (obs1.daypart[0].precipChance[0])
 			if(state.precipChanceToday == null){sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[1], isStateChange: state.force )}
-            else {sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )}
-            
+            else {sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )}            
             sendEvent(name: "precipChanceTomorrow", value: obs1.daypart[0].precipChance[2], isStateChange: state.force )
             sendEvent(name: "precipChanceDayAfterTomorrow", value: obs1.daypart[0].precipChance[4], isStateChange: state.force )
             
@@ -411,6 +412,7 @@ def pollHandler2(resp1, data) {
             sendEvent(name: "tomorrow", value: obs1.dayOfWeek[1], isStateChange: state.force )
             sendEvent(name: "dayAfterTomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )
             sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0], isStateChange: state.force )
+            
             sendEvent(name: "cloudCover", value: obs1.daypart[0].cloudCover[0], isStateChange: state.force )
             sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
             sendEvent(name: "uvIndex", value: obs1.daypart[0].uvIndex[0], isStateChange: state.force )
