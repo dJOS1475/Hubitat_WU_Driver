@@ -479,21 +479,22 @@ def pollHandler2(resp1, data) {
 				else {sendEvent(name: "weatherWarning", value: (obs1.daypart[0].qualifierPhrase[0]), isStateChange: state.force )}	             		
 				state.weatherWarningCode = (obs1.daypart[0].qualifierCode[0])
 				if(state.weatherWarningCode == null){sendEvent(name: "weatherWarningCode", value: "None", isStateChange: state.force )}
-				else {sendEvent(name: "weatherWarningCode", value: (obs1.daypart[0].qualifierCode[0]), isStateChange: state.force )}         }
+				else {sendEvent(name: "weatherWarningCode", value: (obs1.daypart[0].qualifierCode[0]), isStateChange: state.force )}         
+				}
 					
-				state.weatherWarningTommorrow = (obs1.daypart[0].qualifierPhrase[2])
-				if(state.weatherWarningTomorrow == null){sendEvent(name: "weatherWarningTomorrow", value: "None", isStateChange: state.force )}
-				else {sendEvent(name: "weatherWarningTomorrow", value: (obs1.daypart[0].qualifierPhrase[2]), isStateChange: state.force )}	              		
-				state.weatherWarningCodeTomorrow = (obs1.daypart[0].qualifierCode[2])
-				if(state.weatherWarningCodeTomorrow == null){sendEvent(name: "weatherWarningCodeTomorrow", value: "None", isStateChange: state.force )}
-				else {sendEvent(name: "weatherWarningCodeTomorrow", value: (obs1.daypart[0].qualifierCode[2]), isStateChange: state.force )}
-					
-				state.weatherWarningDATomorrow = (obs1.daypart[0].qualifierPhrase[4])
-				if(state.weatherWarningDATomorrow == null){sendEvent(name: "weatherWarningDATomorrow", value: "None", isStateChange: state.force )}
-				else {sendEvent(name: "weatherWarningDATomorrow", value: (obs1.daypart[0].qualifierPhrase[4]), isStateChange: state.force )}	              		
-				state.weatherWarningCodeDATomorrow = (obs1.daypart[0].qualifierCode[4])
-				if(state.weatherWarningCodeDATomorrow == null){sendEvent(name: "weatherWarningCodeDATomorrow", value: "None", isStateChange: state.force )}
-				else {sendEvent(name: "weatherWarningCodeDATomorrow", value: (obs1.daypart[0].qualifierCode[4]), isStateChange: state.force )}
+			state.weatherWarningTommorrow = (obs1.daypart[0].qualifierPhrase[2])
+			if(state.weatherWarningTomorrow == null){sendEvent(name: "weatherWarningTomorrow", value: "None", isStateChange: state.force )}
+			else {sendEvent(name: "weatherWarningTomorrow", value: (obs1.daypart[0].qualifierPhrase[2]), isStateChange: state.force )}	              		
+			state.weatherWarningCodeTomorrow = (obs1.daypart[0].qualifierCode[2])
+			if(state.weatherWarningCodeTomorrow == null){sendEvent(name: "weatherWarningCodeTomorrow", value: "None", isStateChange: state.force )}
+			else {sendEvent(name: "weatherWarningCodeTomorrow", value: (obs1.daypart[0].qualifierCode[2]), isStateChange: state.force )}
+				
+			state.weatherWarningDATomorrow = (obs1.daypart[0].qualifierPhrase[4])
+			if(state.weatherWarningDATomorrow == null){sendEvent(name: "weatherWarningDATomorrow", value: "None", isStateChange: state.force )}
+			else {sendEvent(name: "weatherWarningDATomorrow", value: (obs1.daypart[0].qualifierPhrase[4]), isStateChange: state.force )}	              		
+			state.weatherWarningCodeDATomorrow = (obs1.daypart[0].qualifierCode[4])
+			if(state.weatherWarningCodeDATomorrow == null){sendEvent(name: "weatherWarningCodeDATomorrow", value: "None", isStateChange: state.force )}
+			else {sendEvent(name: "weatherWarningCodeDATomorrow", value: (obs1.daypart[0].qualifierCode[4]), isStateChange: state.force )}
             
 // Weather Icons Logic
 			state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
