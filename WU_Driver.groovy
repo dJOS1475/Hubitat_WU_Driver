@@ -19,6 +19,7 @@
  *
  *  Last Update 10/18/2022
  *
+ *	v6.6.0 - Implement Weather Warning Dashboard Tile + made 12:01am default day start for new installs + Forecast Data code restructure
  *	v6.5.1 - Implement Weather Warnings and Codes 
  *	v6.4.0 - Implement Day/night switching for most forecast items
  *	v6.3.2 - Fix a rain forecast bug
@@ -51,7 +52,7 @@
  */
 
 metadata {
-    definition (name: "Wunderground Driver", namespace: "dJOS", author: "Derek Osborn") {
+    definition (name: "Wunderground Driver", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
         capability "Actuator"
         capability "Sensor"
         capability "Temperature Measurement"
@@ -84,6 +85,7 @@ metadata {
 	    attribute "sunsetTimeLocal", "String"
 	    attribute "html3dayfcst", "string"
  	    
+ 	    attribute "htmlWarnings", "string"
  	    attribute "htmlToday", "string"
  	    attribute "htmlTomorrow", "string"
  	    attribute "htmlDayAfterTomorrow", "string"
@@ -182,7 +184,7 @@ metadata {
             input "autoPoll", "bool", required: false, title: "Enable Auto Poll"
             input "pollInterval", "enum", title: "Auto Poll Interval:", required: false, defaultValue: "5 Minutes", options: ["5 Minutes", "10 Minutes", "15 Minutes", "30 Minutes", "1 Hour", "3 Hours"]
             input "txtEnable", "bool", title: "Enable descriptionText logging", required: false, defaultValue: false
-            input "cutOff", "time", title: "New Day Starts", required: true
+            input "cutOff", "time", title: "New Day Starts", required: true, defaultValue: "00:01"
 			
         }
     }
@@ -286,6 +288,7 @@ def forcePoll(){
     updateTile1()
     updateTile2()
     updateTile3()
+    updateTile4()
     wu3dayfcst()
     def date = new Date()
 	        state.LastTime1 = date.format('HH:mm', location.timeZone)
@@ -395,71 +398,75 @@ def pollHandler2(resp1, data) {
 	if(resp1.getStatus() == 200 || resp1.getStatus() == 207) {
 		obs1 = parseJson(resp1.data)
         if(txtEnable == true){log.debug "Response Data2 = $obs1"}		// log the data returned by WU
-            sendEvent(name: "temperatureMaxToday", value: obs1.temperatureMax[0], isStateChange: state.force )
-            sendEvent(name: "temperatureMaxTomorrow", value: obs1.temperatureMax[1], isStateChange: state.force )
-            sendEvent(name: "temperatureMaxDayAfterTomorrow", value: obs1.temperatureMax[2], isStateChange: state.force )
-            sendEvent(name: "temperatureMinToday", value: obs1.temperatureMin[0], isStateChange: state.force )
-            sendEvent(name: "temperatureMinTomorrow", value: obs1.temperatureMin[1], isStateChange: state.force )
-            sendEvent(name: "temperatureMinDayAfterTomorrow", value: obs1.temperatureMin[2], isStateChange: state.force )          
-            state.forcastPhraseToday = (obs1.daypart[0].wxPhraseLong[0])
-			if(state.forcastPhraseToday == null){sendEvent(name: "forcastPhraseToday", value: obs1.daypart[0].wxPhraseLong[1], isStateChange: state.force )}
-            else {sendEvent(name: "forcastPhraseToday", value: obs1.daypart[0].wxPhraseLong[0], isStateChange: state.force )}   
-                     
+// Weather General Data
+        	sendEvent(name: "temperatureMaxToday", value: obs1.calendarDayTemperatureMax[0], isStateChange: state.force )
+            sendEvent(name: "temperatureMaxTomorrow", value: obs1.calendarDayTemperatureMax[1], isStateChange: state.force )
+            sendEvent(name: "temperatureMaxDayAfterTomorrow", value: obs1.calendarDayTemperatureMax[2], isStateChange: state.force )
+            sendEvent(name: "temperatureMinToday", value: obs1.calendarDayTemperatureMin[0], isStateChange: state.force )
+            sendEvent(name: "temperatureMinTomorrow", value: obs1.calendarDayTemperatureMin[1], isStateChange: state.force )
+            sendEvent(name: "temperatureMinDayAfterTomorrow", value: obs1.calendarDayTemperatureMin[2], isStateChange: state.force ) 
             sendEvent(name: "forcastPhraseTomorrow", value: obs1.daypart[0].wxPhraseLong[2], isStateChange: state.force )
-            sendEvent(name: "forcastPhraseDayAfterTomorrow", value: obs1.daypart[0].wxPhraseLong[4], isStateChange: state.force )           
-            state.precipChanceToday = (obs1.daypart[0].precipChance[0])
-			if(state.precipChanceToday == null){sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[1], isStateChange: state.force )}
-            else {sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )}  
-                      
+            sendEvent(name: "forcastPhraseDayAfterTomorrow", value: obs1.daypart[0].wxPhraseLong[4], isStateChange: state.force )     
             sendEvent(name: "precipChanceTomorrow", value: obs1.daypart[0].precipChance[2], isStateChange: state.force )
             sendEvent(name: "precipChanceDayAfterTomorrow", value: obs1.daypart[0].precipChance[4], isStateChange: state.force )           
             sendEvent(name: "sunsetTimeLocal", value: obs1.sunsetTimeLocal[0], isStateChange: state.force )
             sendEvent(name: "sunriseTimeLocal", value: obs1.sunriseTimeLocal[0], isStateChange: state.force )            
             sendEvent(name: "today", value: obs1.dayOfWeek[0], isStateChange: state.force )
             sendEvent(name: "tomorrow", value: obs1.dayOfWeek[1], isStateChange: state.force )
-            sendEvent(name: "dayAfterTomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )           
-            state.precipType = (obs1.daypart[0].precipChance[0])
-			if(state.precipType == null){sendEvent(name: "precipType", value: obs1.daypart[0].precipType[1], isStateChange: state.force )}
-            else {sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0], isStateChange: state.force )}   
-                      
-            state.cloudCover = (obs1.daypart[0].precipChance[0])
-			if(state.cloudCover == null){sendEvent(name: "cloudCover", value: obs1.daypart[0].precipChance[1], isStateChange: state.force )}
-            else {sendEvent(name: "cloudCover", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )}  
-                      
-            sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
-            sendEvent(name: "uvIndex", value: obs1.daypart[0].uvIndex[0], isStateChange: state.force )
-            sendEvent(name: "thunderCategory", value: obs1.daypart[0].thunderCategory[0], isStateChange: state.force )
-            sendEvent(name: "thunderIndex", value: obs1.daypart[0].thunderCategory[0], isStateChange: state.force )
-            sendEvent(name: "snowRange", value: obs1.daypart[0].snowRange[0], isStateChange: state.force )
-            sendEvent(name: "qpfSnow", value: obs1.daypart[0].qpfSnow[0], isStateChange: state.force )          
-			state.fCstRainToday = (obs1.daypart[0].qpf[0])
-			if(state.fCstRainToday == null){sendEvent(name: "fCstRainToday", value: obs1.daypart[0].qpf[1], isStateChange: state.force )}
-            else {sendEvent(name: "fCstRainToday", value: obs1.daypart[0].qpf[0], isStateChange: state.force )}	  
-                      
+            sendEvent(name: "dayAfterTomorrow", value: obs1.dayOfWeek[2], isStateChange: state.force )   
 			sendEvent(name: "fCstRainTomorrow", value: obs1.daypart[0].qpf[2], isStateChange: state.force )
-            sendEvent(name: "fCstRainDayAfterTomorrow", value: obs1.daypart[0].qpf[1], isStateChange: state.force )          
-			sendEvent(name: "forecastShort", value: obs1.narrative[0], isStateChange: state.force )		
-			
-			state.forecastToday = (obs1.daypart[0].narrative[0])
-			if(state.forecastToday == null){sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[1], isStateChange: state.force )}
-            else {sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[0], isStateChange: state.force )}	 
-                                 	
+            sendEvent(name: "fCstRainDayAfterTomorrow", value: obs1.daypart[0].qpf[1], isStateChange: state.force )  
+            sendEvent(name: "forecastShort", value: obs1.narrative[0], isStateChange: state.force )	   
 			sendEvent(name: "forecastTomorrow", value: obs1.daypart[0].narrative[2], isStateChange: state.force )
-			sendEvent(name: "forecastDayAfterTomorrow", value: obs1.daypart[0].narrative[4], isStateChange: state.force )  		
-            state.weather = (obs1.daypart[0].narrative[0])
-			if(state.weather == null){sendEvent(name: "weather", value: (obs1.daypart[0].narrative[1]), isStateChange: state.force )}
-            else {sendEvent(name: "weather", value: (obs1.daypart[0].narrative[0]), isStateChange: state.force )}	 
-                        
-            sendEvent(name: "wind_dir", value: obs1.daypart[0].windDirectionCardinal[0], isStateChange: state.force )
-			sendEvent(name: "windPhrase", value: obs1.daypart[0].windPhrase[0], isStateChange: state.force )
-			sendEvent(name: "windPhraseForecast", value: obs1.daypart[0].windPhrase[1], isStateChange: state.force )
+			sendEvent(name: "forecastDayAfterTomorrow", value: obs1.daypart[0].narrative[4], isStateChange: state.force ) 
 			sendEvent(name: "forecastHigh", value: obs1.temperatureMax[0], isStateChange: state.force )
 			sendEvent(name: "forecastLow", value: obs1.temperatureMin[0], isStateChange: state.force )
 			sendEvent(name: "moonPhase", value: obs1.moonPhase[0], isStateChange: state.force )
-			sendEvent(name: "UVHarm", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )	
-			
-			state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
-				if(state.dayOrNight == null){	
+            
+        	state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
+        	if(state.dayOrNight == null){	
+// Weather Nightime Data
+				sendEvent(name: "forcastPhraseToday", value: obs1.daypart[0].wxPhraseLong[1], isStateChange: state.force )
+				sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[1], isStateChange: state.force )
+				sendEvent(name: "precipType", value: obs1.daypart[0].precipType[1], isStateChange: state.force )
+				sendEvent(name: "cloudCover", value: obs1.daypart[0].precipChance[1], isStateChange: state.force )        	
+				sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[1], isStateChange: state.force )
+				sendEvent(name: "uvIndex", value: obs1.daypart[0].uvIndex[1], isStateChange: state.force )
+				sendEvent(name: "thunderCategory", value: obs1.daypart[0].thunderCategory[1], isStateChange: state.force )
+				sendEvent(name: "thunderIndex", value: obs1.daypart[0].thunderCategory[1], isStateChange: state.force )
+				sendEvent(name: "snowRange", value: obs1.daypart[0].snowRange[1], isStateChange: state.force )
+				sendEvent(name: "qpfSnow", value: obs1.daypart[0].qpfSnow[1], isStateChange: state.force ) 
+				sendEvent(name: "fCstRainToday", value: obs1.daypart[0].qpf[1], isStateChange: state.force )
+				sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[1], isStateChange: state.force )
+				sendEvent(name: "weather", value: (obs1.daypart[0].narrative[1]), isStateChange: state.force )
+				sendEvent(name: "wind_dir", value: obs1.daypart[0].windDirectionCardinal[1], isStateChange: state.force )
+				sendEvent(name: "windPhrase", value: obs1.daypart[0].windPhrase[1], isStateChange: state.force )
+				sendEvent(name: "windPhraseForecast", value: obs1.daypart[0].windPhrase[1], isStateChange: state.force )			
+				sendEvent(name: "UVHarm", value: obs1.daypart[0].uvDescription[1], isStateChange: state.force )	     
+        	}
+// Weather Daytime Data
+        	else {
+				sendEvent(name: "forcastPhraseToday", value: obs1.daypart[0].wxPhraseLong[0], isStateChange: state.force )
+				sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )
+				sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0], isStateChange: state.force )
+				sendEvent(name: "cloudCover", value: obs1.daypart[0].precipChance[0], isStateChange: state.force )         
+				sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )
+				sendEvent(name: "uvIndex", value: obs1.daypart[0].uvIndex[0], isStateChange: state.force )
+				sendEvent(name: "thunderCategory", value: obs1.daypart[0].thunderCategory[0], isStateChange: state.force )
+				sendEvent(name: "thunderIndex", value: obs1.daypart[0].thunderCategory[0], isStateChange: state.force )
+				sendEvent(name: "snowRange", value: obs1.daypart[0].snowRange[0], isStateChange: state.force )
+				sendEvent(name: "qpfSnow", value: obs1.daypart[0].qpfSnow[0], isStateChange: state.force ) 
+				sendEvent(name: "fCstRainToday", value: obs1.daypart[0].qpf[0], isStateChange: state.force )
+				sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[0], isStateChange: state.force )
+				sendEvent(name: "weather", value: (obs1.daypart[0].narrative[0]), isStateChange: state.force )
+				sendEvent(name: "wind_dir", value: obs1.daypart[0].windDirectionCardinal[0], isStateChange: state.force )
+				sendEvent(name: "windPhrase", value: obs1.daypart[0].windPhrase[0], isStateChange: state.force )
+				sendEvent(name: "windPhraseForecast", value: obs1.daypart[0].windPhrase[0], isStateChange: state.force )			
+				sendEvent(name: "UVHarm", value: obs1.daypart[0].uvDescription[0], isStateChange: state.force )	     
+            }  
+               
+// Weather Warnings Data
+			if(state.dayOrNight == null){	
 				state.weatherWarning = (obs1.daypart[0].qualifierPhrase[1])
 				if(state.weatherWarning == null){sendEvent(name: "weatherWarning", value: "None", isStateChange: state.force )}
 				else {sendEvent(name: "weatherWarning", value: (obs1.daypart[0].qualifierPhrase[1]), isStateChange: state.force )}	             		
@@ -474,20 +481,21 @@ def pollHandler2(resp1, data) {
 				if(state.weatherWarningCode == null){sendEvent(name: "weatherWarningCode", value: "None", isStateChange: state.force )}
 				else {sendEvent(name: "weatherWarningCode", value: (obs1.daypart[0].qualifierCode[0]), isStateChange: state.force )}         }
 					
-			state.weatherWarningTommorrow = (obs1.daypart[0].qualifierPhrase[2])
-			if(state.weatherWarningTomorrow == null){sendEvent(name: "weatherWarningTomorrow", value: "None", isStateChange: state.force )}
-			else {sendEvent(name: "weatherWarningTomorrow", value: (obs1.daypart[0].qualifierPhrase[2]), isStateChange: state.force )}	              		
-			state.weatherWarningCodeTomorrow = (obs1.daypart[0].qualifierCode[2])
-			if(state.weatherWarningCodeTomorrow == null){sendEvent(name: "weatherWarningCodeTomorrow", value: "None", isStateChange: state.force )}
-			else {sendEvent(name: "weatherWarningCodeTomorrow", value: (obs1.daypart[0].qualifierCode[2]), isStateChange: state.force )}
-			 		
-			state.weatherWarningDATomorrow = (obs1.daypart[0].qualifierPhrase[4])
-			if(state.weatherWarningDATomorrow == null){sendEvent(name: "weatherWarningDATomorrow", value: "None", isStateChange: state.force )}
-			else {sendEvent(name: "weatherWarningDATomorrow", value: (obs1.daypart[0].qualifierPhrase[4]), isStateChange: state.force )}	              		
-			state.weatherWarningCodeDATomorrow = (obs1.daypart[0].qualifierCode[4])
-			if(state.weatherWarningCodeDATomorrow == null){sendEvent(name: "weatherWarningCodeDATomorrow", value: "None", isStateChange: state.force )}
-			else {sendEvent(name: "weatherWarningCodeDATomorrow", value: (obs1.daypart[0].qualifierCode[4]), isStateChange: state.force )}
+				state.weatherWarningTommorrow = (obs1.daypart[0].qualifierPhrase[2])
+				if(state.weatherWarningTomorrow == null){sendEvent(name: "weatherWarningTomorrow", value: "None", isStateChange: state.force )}
+				else {sendEvent(name: "weatherWarningTomorrow", value: (obs1.daypart[0].qualifierPhrase[2]), isStateChange: state.force )}	              		
+				state.weatherWarningCodeTomorrow = (obs1.daypart[0].qualifierCode[2])
+				if(state.weatherWarningCodeTomorrow == null){sendEvent(name: "weatherWarningCodeTomorrow", value: "None", isStateChange: state.force )}
+				else {sendEvent(name: "weatherWarningCodeTomorrow", value: (obs1.daypart[0].qualifierCode[2]), isStateChange: state.force )}
+					
+				state.weatherWarningDATomorrow = (obs1.daypart[0].qualifierPhrase[4])
+				if(state.weatherWarningDATomorrow == null){sendEvent(name: "weatherWarningDATomorrow", value: "None", isStateChange: state.force )}
+				else {sendEvent(name: "weatherWarningDATomorrow", value: (obs1.daypart[0].qualifierPhrase[4]), isStateChange: state.force )}	              		
+				state.weatherWarningCodeDATomorrow = (obs1.daypart[0].qualifierCode[4])
+				if(state.weatherWarningCodeDATomorrow == null){sendEvent(name: "weatherWarningCodeDATomorrow", value: "None", isStateChange: state.force )}
+				else {sendEvent(name: "weatherWarningCodeDATomorrow", value: (obs1.daypart[0].qualifierCode[4]), isStateChange: state.force )}
             
+// Weather Icons Logic
 			state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
 			if(useIcons){
 			if(state.dayOrNight == null){	
@@ -516,11 +524,10 @@ def pollHandler2(resp1, data) {
 		log.error "WU weather api did not return data from poll2 - $res1"
 	}  
    
-
 }
 
 
-
+// HTML Tiles Logic
 def updateTile1() {
 	if(txtEnable == true){log.debug "updateTile1 called"}		// log the data returned by WU//	
 	htmlToday ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
@@ -554,6 +561,20 @@ def updateTile1() {
 	if(txtEnable == true){log.debug "${htmlDayAfterTomorrow.length()}"}		// log the data returned by WU//
 	}
 
+	def updateTile4() {
+	if(txtEnable == true){log.debug "updateTile4 called"}		// log the data returned by WU//		
+	htmlWarnings ="<div style='line-height:1.0; font-size:1em;'><br>Weather Warnings for ${device.currentValue('station_location')}<br></div>"
+	htmlWarnings +="<div style='line-height:50%;'><br></div>"
+	htmlWarnings +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('today')}: ${device.currentValue('weatherWarning')}<br></div>"
+	htmlWarnings +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('tomorrow')}: ${device.currentValue('weatherWarningTomorrow')}<br></div>"
+	htmlWarnings +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('dayAfterTomorrow')}: ${device.currentValue('weatherWarningDATomorrow')}<br></div>"
+	sendEvent(name: "htmlWarnings", value: "$htmlWarnings")
+	if(txtEnable == true){log.debug "htmlWarnings contains ${htmlWarnings}"}		// log the data returned by WU//	
+	if(txtEnable == true){log.debug "${htmlWarnings.length()}"}		// log the data returned by WU//
+	}
+
+
+// HTML 3 Day Forecast Tile Logic
 def wu3dayfcst() {
 
     String sTD='<td>'
