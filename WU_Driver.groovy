@@ -17,7 +17,7 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Last Update 10/28/2022
+ *  Last Update 11/01/2022
  *
  *  v6.7.1 - Bug Fixes by @swade
  *  v6.7.0 - Added Rain History Tile and Today/Tonight forecast header when forecast changes by @swade
@@ -54,7 +54,7 @@
  */
 
 metadata {
-    definition (name: "Wunderground Driver", version: "6.7.0", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
+    definition (name: "Wunderground Driver", version: "6.7.1", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
         capability "Actuator"
         capability "Sensor"
         capability "Temperature Measurement"
