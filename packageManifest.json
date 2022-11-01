@@ -7,7 +7,7 @@
   "drivers": [
     {
       "id": "adde3e52-50ed-4c85-ab5a-786892b8fb71",
-      "name": "Enhanced Wunderground Driver",
+      "name": "Wunderground Driver",
       "namespace": "dJOS",
       "location": "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy",
       "required": true
