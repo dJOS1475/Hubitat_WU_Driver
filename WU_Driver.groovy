@@ -17,8 +17,9 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Last Update 10/28/2022
+ *  Last Update 11/01/2022
  *
+ *  v6.7.1 - Bug Fixes by @swade
  *  v6.7.0 - Added Rain History Tile and Today/Tonight forecast header when forecast changes by @swade
  *	v6.6.0 - Implement Weather Warning Dashboard Tile + made 12:01am default day start for new installs + Forecast Data code restructure
  *	v6.5.1 - Implement Weather Warnings and Codes 
@@ -53,7 +54,7 @@
  */
 
 metadata {
-    definition (name: "Wunderground Driver", version: "6.7.0", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
+    definition (name: "Wunderground Driver", version: "6.7.1", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
         capability "Actuator"
         capability "Sensor"
         capability "Temperature Measurement"
@@ -196,7 +197,7 @@ metadata {
 def updated() {
     if(txtEnable){log.debug "updated called"}
     unschedule()
-    state.NumOfPolls = 0
+    //state.NumOfPolls = 0
     forcePoll()
     def pollIntervalCmd = (settings?.pollInterval ?: "5 Minutes").replace(" ", "")
     if(autoPoll)
@@ -221,7 +222,7 @@ def forceUpdateOff(){
 }
 
 def resetPollCount(){
-	state.NumOfPolls = -1
+	//state.NumOfPolls = -1
     if(txtEnable == true){log.info "Poll counter reset.."}
     forcePoll()
 }
@@ -277,8 +278,8 @@ def formatUnit(){
 def forcePoll(){
     if(txtEnable == true){log.debug "WU: Poll called"}
     unschedule("dayRainChange")  //needed to remove unused method    
-    state.NumOfPolls = (state.NumOfPolls) + 1
-    sendEvent(name: "pollsSinceReset", value: state.NumOfPolls, isStateChange: state.force )
+    //state.NumOfPolls = (state.NumOfPolls) + 1
+    //sendEvent(name: "pollsSinceReset", value: state.NumOfPolls, isStateChange: state.force )
 	poll1()
     pauseExecution(5000)
 	poll2()
@@ -568,21 +569,79 @@ def pollHandler3(resp1, data) {
         
         def (day1, day2, day3, day4, day5, day6, day7) = rain7List.tokenize( ',' )
         if(txtEnable == true){log.info "Day 1: $day1, Day 2: $day2, Day 3: $day3, Day 4: $day4, Day 5: $day5, Day 6: $day6, Day 7: $day7"}
-    
+        
         BigDecimal bd1
-        if (day1) {bd1 = day1.toBigDecimal()} else {bd1 = 0}
+        if (day1.trim() != 'null' && day1.trim() != '')
+        {
+            if (day1 != null) {bd1 = day1.toBigDecimal()} else {bd1 = 0}
+        }
+        else
+        {
+            bd1 = 0.00
+        }
+        //if (day1.trim()) {bd1 = day1.toBigDecimal()} else {bd1 = 0.00}
+        
+        
         BigDecimal bd2
-        if (day2) {bd2 = day2.toBigDecimal()} else {bd2 = 0}
+        if (day2.trim() != 'null' && day2.trim() != '')
+        {
+            if (day2 != null) {bd2 = day2.toBigDecimal()} else {bd2 = 0}
+        }
+        else
+        {
+            bd2 = 0.00
+        }
+        //if (day2) {bd2 = day2.toBigDecimal()} else {bd2 = 0}
         BigDecimal bd3
-        if (day3) {bd3 = day3.toBigDecimal()} else {bd3 = 0}
+        if (day3.trim() != 'null' && day3.trim() != '')
+        {
+            if (day3 != null) {bd3 = day3.toBigDecimal()} else {bd3 = 0}
+        }
+        else
+        {
+            bd3 = 0.00
+        }
+        //if (day3) {bd3 = day3.toBigDecimal()} else {bd3 = 0}
         BigDecimal bd4
-        if (day4) {bd4 = day4.toBigDecimal()} else {bd4 = 0}
+        if (day4.trim() != 'null' && day4.trim() != '')
+        {
+            if (day4 != null) {bd4 = day4.toBigDecimal()} else {bd4 = 0}
+        }
+        else
+        {
+            bd4 = 0.00
+        }
+        //if (day4) {bd4 = day4.toBigDecimal()} else {bd4 = 0}
         BigDecimal bd5
-        if (day5) {bd5 = day5.toBigDecimal()} else {bd5 = 0}
+        if (day5.trim() != 'null' && day5.trim() != '')
+        {
+            if (day5 != null) {bd5 = day5.toBigDecimal()} else {bd5 = 0}
+        }
+        else
+        {
+            bd5 = 0.00
+        }
+        //if (day5) {bd5 = day5.toBigDecimal()} else {bd5 = 0}
         BigDecimal bd6
-        if (day6) {bd6 = day6.toBigDecimal()} else {bd6 = 0}
+        if (day6.trim() != 'null' && day6.trim() != '')
+        {
+            if (day6 != null) {bd6 = day6.toBigDecimal()} else {bd6 = 0}
+        }
+        else
+        {
+            bd6 = 0.00
+        }
+        //if (day6) {bd6 = day6.toBigDecimal()} else {bd6 = 0}
         BigDecimal bd7
-        if (day7) {bd7 = day7.toBigDecimal()} else {bd7 = 0}
+        if (day7.trim() != 'null' && day7.trim() != '')
+        {
+            if (day7 != null) {bd7 = day7.toBigDecimal()} else {bd7 = 0}
+        }
+        else
+        {
+            bd7 = 0.00
+        }
+        // (day7) {bd7 = day7.toBigDecimal()} else {bd7 = 0}
         
         BigDecimal bdAll7 = bd1 + bd2 + bd3 + bd4 + bd5 + bd6 + bd7        
         String bdString7 = String.valueOf(bdAll7)
