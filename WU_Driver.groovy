@@ -17,8 +17,9 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Last Update 11/01/2022
+ *  Last Update 11/02/2022
  *
+ *  v6.8.0 - Made the PWS optional for those that dont have one
  *  v6.7.1 - Bug Fixes by @swade
  *  v6.7.0 - Added Rain History Tile and Today/Tonight forecast header when forecast changes by @swade
  *	v6.6.0 - Implement Weather Warning Dashboard Tile + made 12:01am default day start for new installs + Forecast Data code restructure
@@ -54,7 +55,7 @@
  */
 
 metadata {
-    definition (name: "Wunderground Driver", version: "6.7.1", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
+    definition (name: "Wunderground Driver", version: "6.8.0", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
         capability "Actuator"
         capability "Sensor"
         capability "Temperature Measurement"
@@ -177,7 +178,7 @@ metadata {
     preferences() {
         section("Query Inputs"){
             input "apiKey", "text", required: true, title: "API Key"
-            input "pollLocation", "text", required: true, title: "Station ID"
+            input "pollLocation", "text", required: false, title: "Station ID (Optional)"
 			input "unitFormat", "enum", required: true, title: "Unit Format",  options: ["Imperial", "Metric", "UK Hybrid"]
             if(unitFormat == "UK Hybrid"){input "unitElevation", "bool", required: false, title: "Use Metric for elevation (m)", defaultValue: false}
             input "language", "enum", required: true, title: "Language",  options: ["US", "GB"], defaultValue: US
@@ -280,19 +281,32 @@ def forcePoll(){
     unschedule("dayRainChange")  //needed to remove unused method    
     //state.NumOfPolls = (state.NumOfPolls) + 1
     //sendEvent(name: "pollsSinceReset", value: state.NumOfPolls, isStateChange: state.force )
-	poll1()
-    pauseExecution(5000)
+	
+	// Check Poll1 Data only if there is a station ID.
+	if(pollLocation != null){
+    poll1()
+    pauseExecution(5000)}
+    
+    if(pollLocation == null){
+    sendEvent(name: "station_location", value: "Home", isStateChange: state.force )
+    }
 	poll2()
 	pauseExecution(5000)
+	
+	// Check Poll3 Data only if there is a station ID.
+    if(pollLocation != null){
     poll3()
-    pauseExecution(5000)
-    
+    pauseExecution(5000)}
     updateTile1()
     updateTile2()
     updateTile3()
     updateTile4()
-    wu3dayfcst()
-    rainTile()
+    if(pollLocation != null){
+    wu3dayfcst()}
+
+    // Check PWS Rain Data only if there is a station ID.
+    if(pollLocation != null){
+    rainTile()}
     def date = new Date()
     state.LastTime1 = date.format('HH:mm', location.timeZone)
     sendEvent(name: "lastPollTime", value: state.LastTime1)
@@ -757,6 +771,7 @@ def wu3dayfcst() {
     String strSunset = "${convert24to12(sunsetLocal)}"
     if(txtEnable == true){log.info "Sunset = $strSunset"}
     
+
     String strRainToday = ''
     //("${device.currentValue('precip_today')}" != '')
     if ("${device.currentValue('precip_today')}")
@@ -766,9 +781,9 @@ def wu3dayfcst() {
         {
             strRainToday = ' / ' + rainToday.toString()
         }
-    }
+    
 
-    if(txtEnable == true){log.info "rainToday = $rainToday"}
+    if(txtEnable == true){log.info "rainToday = $rainToday"}}
     
     String lastPoll = convert24to12("${device.currentValue('lastPollTime')}")
     
