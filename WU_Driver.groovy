@@ -17,9 +17,9 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Last Update 11/02/2022
+ *  Last Update 11/03/2022
  *
- *  v6.8.0 - Made the PWS optional for those that dont have one
+ *  v6.8.1 - Made the PWS optional for those that dont have one
  *  v6.7.1 - Bug Fixes by @swade
  *  v6.7.0 - Added Rain History Tile and Today/Tonight forecast header when forecast changes by @swade
  *	v6.6.0 - Implement Weather Warning Dashboard Tile + made 12:01am default day start for new installs + Forecast Data code restructure
@@ -55,7 +55,7 @@
  */
 
 metadata {
-    definition (name: "Wunderground Driver", version: "6.8.0", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
+    definition (name: "Wunderground Driver", version: "6.8.1", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
         capability "Actuator"
         capability "Sensor"
         capability "Temperature Measurement"
@@ -174,7 +174,9 @@ metadata {
         attribute "weatherWarningCodeTomorrow", "string"
 		attribute "weatherWarningDATomorrow", "string"
         attribute "weatherWarningCodeDATomorrow", "string"
+        attribute "location", "string"
     }
+    
     preferences() {
         section("Query Inputs"){
             input "apiKey", "text", required: true, title: "API Key"
@@ -277,35 +279,39 @@ def formatUnit(){
 }
 
 def forcePoll(){
-    if(txtEnable == true){log.debug "WU: Poll called"}
+	sendEvent(name: "location", value: "${pollLocation}", isStateChange: state.force )
+	if(txtEnable == true){log.debug "WU: Poll called"}
     unschedule("dayRainChange")  //needed to remove unused method    
     //state.NumOfPolls = (state.NumOfPolls) + 1
     //sendEvent(name: "pollsSinceReset", value: state.NumOfPolls, isStateChange: state.force )
 	
-	// Check Poll1 Data only if there is a station ID.
-	if(pollLocation != null){
+	// Check Poll1 Data only if there is a station ID in the location field.
+	if(location != null){
     poll1()
     pauseExecution(5000)}
     
-    if(pollLocation == null){
+    // Check Poll2 Data only if there is a station ID in the location field.
+    if(location == null){
     sendEvent(name: "station_location", value: "Home", isStateChange: state.force )
     }
 	poll2()
 	pauseExecution(5000)
 	
-	// Check Poll3 Data only if there is a station ID.
-    if(pollLocation != null){
+	// Check Poll3 Data only if there is a station ID in the location field.
+    if(location != null){
     poll3()
     pauseExecution(5000)}
+    
     updateTile1()
     updateTile2()
     updateTile3()
     updateTile4()
-    if(pollLocation != null){
+    
+    if(location != null){
     wu3dayfcst()}
 
-    // Check PWS Rain Data only if there is a station ID.
-    if(pollLocation != null){
+    // Check rain Data only if there is a station ID in the location field.
+    if(location != null){
     rainTile()}
     def date = new Date()
     state.LastTime1 = date.format('HH:mm', location.timeZone)
