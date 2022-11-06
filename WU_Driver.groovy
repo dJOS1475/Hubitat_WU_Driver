@@ -17,9 +17,9 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Last Update 11/03/2022
+ *  Last Update 07/11/2022
  *
- *  v6.8.1 - Made the PWS optional for those that dont have one
+ *  v6.8.2 - Removed option PWS functionality - it just broke too many things
  *  v6.7.1 - Bug Fixes by @swade
  *  v6.7.0 - Added Rain History Tile and Today/Tonight forecast header when forecast changes by @swade
  *	v6.6.0 - Implement Weather Warning Dashboard Tile + made 12:01am default day start for new installs + Forecast Data code restructure
@@ -55,7 +55,7 @@
  */
 
 metadata {
-    definition (name: "Wunderground Driver", version: "6.8.1", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
+    definition (name: "Wunderground Driver", version: "6.8.2", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
         capability "Actuator"
         capability "Sensor"
         capability "Temperature Measurement"
@@ -174,13 +174,11 @@ metadata {
         attribute "weatherWarningCodeTomorrow", "string"
 		attribute "weatherWarningDATomorrow", "string"
         attribute "weatherWarningCodeDATomorrow", "string"
-        attribute "location", "string"
     }
-    
     preferences() {
         section("Query Inputs"){
             input "apiKey", "text", required: true, title: "API Key"
-            input "pollLocation", "text", required: false, title: "Station ID (Optional)"
+            input "pollLocation", "text", required: true, title: "Personal Weather Station ID"
 			input "unitFormat", "enum", required: true, title: "Unit Format",  options: ["Imperial", "Metric", "UK Hybrid"]
             if(unitFormat == "UK Hybrid"){input "unitElevation", "bool", required: false, title: "Use Metric for elevation (m)", defaultValue: false}
             input "language", "enum", required: true, title: "Language",  options: ["US", "GB"], defaultValue: US
@@ -191,7 +189,7 @@ metadata {
             input "pollIntervalLimit", "number", title: "Poll Interval Limit:", required: true, defaultValue: 1
             input "autoPoll", "bool", required: false, title: "Enable Auto Poll"
             input "pollInterval", "enum", title: "Auto Poll Interval:", required: false, defaultValue: "5 Minutes", options: ["5 Minutes", "10 Minutes", "15 Minutes", "30 Minutes", "1 Hour", "3 Hours"]
-            input "txtEnable", "bool", title: "Enable descriptionText logging", required: false, defaultValue: false
+            input "txtEnable", "bool", title: "Enable Detailed logging", required: false, defaultValue: false
             input "cutOff", "time", title: "New Day Starts", required: true, defaultValue: "00:01"
         }
     }
@@ -279,40 +277,23 @@ def formatUnit(){
 }
 
 def forcePoll(){
-	sendEvent(name: "location", value: "${pollLocation}", isStateChange: state.force )
-	if(txtEnable == true){log.debug "WU: Poll called"}
+    if(txtEnable == true){log.debug "WU: Poll called"}
     unschedule("dayRainChange")  //needed to remove unused method    
     //state.NumOfPolls = (state.NumOfPolls) + 1
     //sendEvent(name: "pollsSinceReset", value: state.NumOfPolls, isStateChange: state.force )
-	
-	// Check Poll1 Data only if there is a station ID in the location field.
-	if(location != null){
-    poll1()
-    pauseExecution(5000)}
-    
-    // Check Poll2 Data only if there is a station ID in the location field.
-    if(location == null){
-    sendEvent(name: "station_location", value: "Home", isStateChange: state.force )
-    }
+	poll1()
+    pauseExecution(5000)
 	poll2()
 	pauseExecution(5000)
-	
-	// Check Poll3 Data only if there is a station ID in the location field.
-    if(location != null){
     poll3()
-    pauseExecution(5000)}
+    pauseExecution(5000)
     
     updateTile1()
     updateTile2()
     updateTile3()
     updateTile4()
-    
-    if(location != null){
-    wu3dayfcst()}
-
-    // Check rain Data only if there is a station ID in the location field.
-    if(location != null){
-    rainTile()}
+    wu3dayfcst()
+    rainTile()
     def date = new Date()
     state.LastTime1 = date.format('HH:mm', location.timeZone)
     sendEvent(name: "lastPollTime", value: state.LastTime1)
@@ -777,7 +758,6 @@ def wu3dayfcst() {
     String strSunset = "${convert24to12(sunsetLocal)}"
     if(txtEnable == true){log.info "Sunset = $strSunset"}
     
-
     String strRainToday = ''
     //("${device.currentValue('precip_today')}" != '')
     if ("${device.currentValue('precip_today')}")
@@ -787,9 +767,9 @@ def wu3dayfcst() {
         {
             strRainToday = ' / ' + rainToday.toString()
         }
-    
+    }
 
-    if(txtEnable == true){log.info "rainToday = $rainToday"}}
+    if(txtEnable == true){log.info "rainToday = $rainToday"}
     
     String lastPoll = convert24to12("${device.currentValue('lastPollTime')}")
     
