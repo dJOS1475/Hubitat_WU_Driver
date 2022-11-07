@@ -178,8 +178,7 @@ metadata {
         attribute "weatherWarningTomorrow", "string"
         attribute "weatherWarningCodeTomorrow", "string"
 		attribute "weatherWarningDATomorrow", "string"
-        attribute "weatherWarningCodeDATomorrow", "string"
-        attribute "driverVersion", "string"        
+        attribute "weatherWarningCodeDATomorrow", "string"        
     }
     preferences() {
         section("Query Inputs"){
@@ -202,9 +201,6 @@ metadata {
     }
 }
 
-def driverVersion() {
-    sendEvent(name: "driverVersion", value: "6.8.3", isStateChange: state.force )
-}
 
 def updated() {
     if(txtEnable){log.debug "updated called"}
@@ -289,7 +285,6 @@ def formatUnit(){
 
 def forcePoll(){
     if(txtEnable == true){log.debug "WU: Poll called"}
-    driverVersion()
     unschedule("dayRainChange")  //needed to remove unused method    
     //state.NumOfPolls = (state.NumOfPolls) + 1
     //sendEvent(name: "pollsSinceReset", value: state.NumOfPolls, isStateChange: state.force )
