@@ -19,7 +19,7 @@
  *
  *  Last Update 07/11/2022
  *
- *  v6.8.2 - Removed option PWS functionality - it just broke too many things
+ *  v6.8.2 - Removed option PWS functionality - it just broke too many things - added version reporting
  *  v6.7.1 - Bug Fixes by @swade
  *  v6.7.0 - Added Rain History Tile and Today/Tonight forecast header when forecast changes by @swade
  *	v6.6.0 - Implement Weather Warning Dashboard Tile + made 12:01am default day start for new installs + Forecast Data code restructure
@@ -55,7 +55,7 @@
  */
 
 metadata {
-    definition (name: "Wunderground Driver", version: "6.8.2", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
+    definition (name: "Wunderground Driver", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
         capability "Actuator"
         capability "Sensor"
         capability "Temperature Measurement"
@@ -174,6 +174,7 @@ metadata {
         attribute "weatherWarningCodeTomorrow", "string"
 		attribute "weatherWarningDATomorrow", "string"
         attribute "weatherWarningCodeDATomorrow", "string"
+        attribute "driverVersion", "string"        
     }
     preferences() {
         section("Query Inputs"){
@@ -193,6 +194,10 @@ metadata {
             input "cutOff", "time", title: "New Day Starts", required: true, defaultValue: "00:01"
         }
     }
+}
+
+def version() {
+    sendEvent(name: "driverVersion", value: "6.8.2", isStateChange: state.force )
 }
 
 def updated() {
@@ -278,6 +283,7 @@ def formatUnit(){
 
 def forcePoll(){
     if(txtEnable == true){log.debug "WU: Poll called"}
+    version()
     unschedule("dayRainChange")  //needed to remove unused method    
     //state.NumOfPolls = (state.NumOfPolls) + 1
     //sendEvent(name: "pollsSinceReset", value: state.NumOfPolls, isStateChange: state.force )
