@@ -17,8 +17,9 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Last Update 07/11/2022
+ *  Last Update 11/08/2022
  *
+ *  v6.8.3 - Added Error Checks when WU doesn't return all days of rain history
  *  v6.8.2 - Removed option PWS functionality - it just broke too many things - added version reporting
  *  v6.7.1 - Bug Fixes by @swade
  *  v6.7.0 - Added Rain History Tile and Today/Tonight forecast header when forecast changes by @swade
@@ -53,6 +54,10 @@
  *	V1.0.0 - Original @mattw01 version
  *
  */
+
+def version() {
+    return "6.8.3"
+}
 
 metadata {
     definition (name: "Wunderground Driver", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
@@ -192,12 +197,13 @@ metadata {
             input "pollInterval", "enum", title: "Auto Poll Interval:", required: false, defaultValue: "5 Minutes", options: ["5 Minutes", "10 Minutes", "15 Minutes", "30 Minutes", "1 Hour", "3 Hours"]
             input "txtEnable", "bool", title: "Enable Detailed logging", required: false, defaultValue: false
             input "cutOff", "time", title: "New Day Starts", required: true, defaultValue: "00:01"
+            input name: "about", type: "paragraph", element: "paragraph", title: "Wunderground Driver", description: "v.${version()}"
         }
     }
 }
 
-def version() {
-    sendEvent(name: "driverVersion", value: "6.8.2", isStateChange: state.force )
+def driverVersion() {
+    sendEvent(name: "driverVersion", value: "6.8.3", isStateChange: state.force )
 }
 
 def updated() {
@@ -283,7 +289,7 @@ def formatUnit(){
 
 def forcePoll(){
     if(txtEnable == true){log.debug "WU: Poll called"}
-    version()
+    driverVersion()
     unschedule("dayRainChange")  //needed to remove unused method    
     //state.NumOfPolls = (state.NumOfPolls) + 1
     //sendEvent(name: "pollsSinceReset", value: state.NumOfPolls, isStateChange: state.force )
@@ -640,14 +646,27 @@ def pollHandler3(resp1, data) {
         }
         //if (day6) {bd6 = day6.toBigDecimal()} else {bd6 = 0}
         BigDecimal bd7
-        if (day7.trim() != 'null' && day7.trim() != '')
-        {
-            if (day7 != null) {bd7 = day7.toBigDecimal()} else {bd7 = 0}
-        }
-        else
-        {
-            bd7 = 0.00
-        }
+        try{
+            if (day7.trim() != 'null' && day7.trim() != '')
+            {
+                if (day7 != null) {bd7 = day7.toBigDecimal()} else {bd7 = 0}
+            }        
+        }catch(Exception e)
+            {
+                bd7 = 0.00
+                log.warn "WU did not return all rain values on this attempt. Missing at least 1 day's rain. Will retry on next interval."
+                log.warn "Needs 7 values: $rain7List"
+                log.warn "error: $e"
+            }   
+        
+        //if (day7.trim() != 'null' && day7.trim() != '')
+        //{
+        //    if (day7 != null) {bd7 = day7.toBigDecimal()} else {bd7 = 0}
+        //}
+        //else
+        //{
+        //    bd7 = 0.00
+        //}
         // (day7) {bd7 = day7.toBigDecimal()} else {bd7 = 0}
         
         BigDecimal bdAll7 = bd1 + bd2 + bd3 + bd4 + bd5 + bd6 + bd7        
