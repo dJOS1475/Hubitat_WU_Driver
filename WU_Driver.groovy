@@ -19,6 +19,7 @@
  *
  *  Last Update 11/08/2022
  *
+ *  v6.9.0 - Enabled the manual entry of Location (lat/long) for Forecasts etc
  *  v6.8.3 - Added Error Checks when WU doesn't return all days of rain history
  *  v6.8.2 - Removed option PWS functionality - it just broke too many things - added version reporting
  *  v6.7.1 - Bug Fixes by @swade
@@ -56,7 +57,7 @@
  */
 
 def version() {
-    return "6.8.3"
+    return "6.9.0"
 }
 
 metadata {
@@ -159,17 +160,14 @@ metadata {
         attribute "fCstRainToday", "number"
         attribute "fCstRainTomorrow", "number"
         attribute "fCstRainDayAfterTomorrow", "number"
-        attribute "moonPhase", "string"
-        attribute "moonIllumination", "number"
-        attribute "latitude", "decimal"
-		attribute "longitude", "decimal"
- 		attribute "DriverAuthor", "string"
-        attribute "DriverVersion", "string"
+        attribute "moonPhase", "string"        
+ 		// attribute "DriverAuthor", "string"
+        // attribute "DriverVersion", "string"
 		attribute "humidity", "number"
 		attribute "station_location", "string"
         attribute "elevation", "number"
-        //attribute "rainYesterday", "number"
-        //attribute "rainDayBeforeYesterday", "number"
+        // attribute "rainYesterday", "number"
+        // attribute "rainDayBeforeYesterday", "number"
         attribute "lastUpdateCheck", "string"
         attribute "lastPollTime", "string"
         attribute "cloudCover", "number"
@@ -178,10 +176,16 @@ metadata {
         attribute "weatherWarningTomorrow", "string"
         attribute "weatherWarningCodeTomorrow", "string"
 		attribute "weatherWarningDATomorrow", "string"
-        attribute "weatherWarningCodeDATomorrow", "string"        
+        attribute "weatherWarningCodeDATomorrow", "string"
+        attribute "moonIllumination", "number"
+        attribute "latitude", "decimal"
+		attribute "longitude", "decimal"
+        attribute "latitudeCust", "decimal"
+		attribute "longitudeCust", "decimal"
     }
     preferences() {
         section("Query Inputs"){
+			input name: "about", type: "paragraph", element: "paragraph", title: "Wunderground Driver", description: "v.${version()}"
             input "apiKey", "text", required: true, title: "API Key"
             input "pollLocation", "text", required: true, title: "Personal Weather Station ID"
 			input "unitFormat", "enum", required: true, title: "Unit Format",  options: ["Imperial", "Metric", "UK Hybrid"]
@@ -196,10 +200,15 @@ metadata {
             input "pollInterval", "enum", title: "Auto Poll Interval:", required: false, defaultValue: "5 Minutes", options: ["5 Minutes", "10 Minutes", "15 Minutes", "30 Minutes", "1 Hour", "3 Hours"]
             input "txtEnable", "bool", title: "Enable Detailed logging", required: false, defaultValue: false
             input "cutOff", "time", title: "New Day Starts", required: true, defaultValue: "00:01"
-            input name: "about", type: "paragraph", element: "paragraph", title: "Wunderground Driver", description: "v.${version()}"
+            input "gpsCoords", "bool", title: "Use custom GPS Coordinates for Forecast?" defaultvalue:false, submitOnChange: true
+			if (gpsCoords) {
+			input "latitudeCust", "text", title: "Enter Latitude in decimals, EX: 37.48644", defaultValue: 0, width: 6, required: false
+			input "longitudeCust", "text", title: "Enter Longitude in decimals, EX: -121.932309", defaultValue: 0, width: 6, required: false}
         }
     }
 }
+
+
 
 
 def updated() {
@@ -288,13 +297,13 @@ def forcePoll(){
     unschedule("dayRainChange")  //needed to remove unused method    
     //state.NumOfPolls = (state.NumOfPolls) + 1
     //sendEvent(name: "pollsSinceReset", value: state.NumOfPolls, isStateChange: state.force )
+	locationCoOrds()
 	poll1()
     pauseExecution(5000)
 	poll2()
 	pauseExecution(5000)
     poll3()
     pauseExecution(5000)
-    
     updateTile1()
     updateTile2()
     updateTile3()
@@ -305,6 +314,21 @@ def forcePoll(){
     state.LastTime1 = date.format('HH:mm', location.timeZone)
     sendEvent(name: "lastPollTime", value: state.LastTime1)
 }
+
+def locationCoOrds(){	
+    if(gpsCoords){
+			state.latt1 = latitudeCust
+			state.long1 = longitudeCust
+			sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
+			sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
+			}
+		else{    
+			state.latt1 = (location.getLatitude())
+			state.long1 = (location.getLongitude())
+			sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
+			sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
+			}
+		}	
 	
 def poll1(){
     formatUnit()  
@@ -332,15 +356,7 @@ def pollHandler1(resp, data) {
 			sendEvent(name: "humidity", value: obs.observations.humidity[0], isStateChange: state.force )
             sendEvent(name: "observation_time", value: obs.observations.obsTimeLocal[0], isStateChange: state.force )
             sendEvent(name: "wind_degree", value: obs.observations.winddir[0], isStateChange: state.force )		
-			//state.latt1 = (location.getLatitude())
-			//state.long1 = (location.getLongitude())
-            //def latt1Saved = (location.getLatitude())
-            //def long1Saved = (location.getLongitude()) 
-            //if(latt1Saved == null){sendLocationEvent(name: "lattSaved", value: state.latt1)}
-            //if(long1Saved == null){sendLocationEvent(name: "longSaved", value: state.long1)}                              
-            //if(txtEnable == true){log.debug "Poll1 - state.latt1 = $state.latt1 -- state.long1 = $state.long1 -- latt1Saved = $latt1Saved -- long1Saved = $long1Saved  "}
-			//sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
-			//sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
+
         if(unitFormat == "Imperial"){
             sendEvent(name: "precip_rate", value: obs.observations.imperial.precipRate[0], isStateChange: state.force )
             //state.todayRain = obs.observations.imperial.precipTotal[0]
@@ -395,11 +411,6 @@ def pollHandler1(resp, data) {
 
 def poll2(){
     formatUnit()
-    state.latt1 = (location.getLatitude())
-    state.long1 = (location.getLongitude())
-	sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
-	sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
-
     def params2 = [uri: "https://api.weather.com/v3/wx/forecast/daily/5day?geocode=${state.latt1},${state.long1}&units=${state.unit}&language=${state.languagef}&format=json&apiKey=${apiKey}"]
     if(txtEnable == true){log.debug "Poll2 - state.latt1 = $state.latt1 -- state.long1 = $state.long1"}
     asynchttpGet("pollHandler2", params2)
