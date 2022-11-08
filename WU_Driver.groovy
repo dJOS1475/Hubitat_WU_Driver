@@ -57,7 +57,7 @@
  */
 
 def version() {
-    return "6.9.0"
+    return "6.9.1"
 }
 
 metadata {
@@ -185,6 +185,7 @@ metadata {
     }
     preferences() {
         section("Query Inputs"){
+			input name: "about", type: "paragraph", element: "paragraph", title: "Wunderground Driver", description: "v.${version()}"
 			input "apiKey", "text", required: true, title: "API Key"
             input "pollLocation", "text", required: true, title: "Personal Weather Station ID"
 			input "unitFormat", "enum", required: true, title: "Unit Format",  options: ["Imperial", "Metric", "UK Hybrid"]
@@ -203,8 +204,7 @@ metadata {
 			if (gpsCoords) {
 			input "latitudeCust", "text", title: "Enter Latitude in decimals, EX: 37.48644", defaultValue: 0, width: 6, required: false
 			input "longitudeCust", "text", title: "Enter Longitude in decimals, EX: -121.932309", defaultValue: 0, width: 6, required: false}
-			input name: "about", type: "paragraph", element: "paragraph", title: "Wunderground Driver", description: "v.${version()}"
-        }
+			        }
     }
 }
 
