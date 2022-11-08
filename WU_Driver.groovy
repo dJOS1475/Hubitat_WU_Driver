@@ -185,8 +185,7 @@ metadata {
     }
     preferences() {
         section("Query Inputs"){
-			input name: "about", type: "paragraph", element: "paragraph", title: "Wunderground Driver", description: "v.${version()}"
-            input "apiKey", "text", required: true, title: "API Key"
+			input "apiKey", "text", required: true, title: "API Key"
             input "pollLocation", "text", required: true, title: "Personal Weather Station ID"
 			input "unitFormat", "enum", required: true, title: "Unit Format",  options: ["Imperial", "Metric", "UK Hybrid"]
             if(unitFormat == "UK Hybrid"){input "unitElevation", "bool", required: false, title: "Use Metric for elevation (m)", defaultValue: false}
@@ -200,10 +199,11 @@ metadata {
             input "pollInterval", "enum", title: "Auto Poll Interval:", required: false, defaultValue: "5 Minutes", options: ["5 Minutes", "10 Minutes", "15 Minutes", "30 Minutes", "1 Hour", "3 Hours"]
             input "txtEnable", "bool", title: "Enable Detailed logging", required: false, defaultValue: false
             input "cutOff", "time", title: "New Day Starts", required: true, defaultValue: "00:01"
-            input "gpsCoords", "bool", title: "Use custom GPS Coordinates for Forecast?" defaultvalue:false, submitOnChange: true
+            input "gpsCoords", "bool", title: "Use custom GPS Coordinates for Forecast?" defaultvalue: false, submitOnChange: true
 			if (gpsCoords) {
 			input "latitudeCust", "text", title: "Enter Latitude in decimals, EX: 37.48644", defaultValue: 0, width: 6, required: false
 			input "longitudeCust", "text", title: "Enter Longitude in decimals, EX: -121.932309", defaultValue: 0, width: 6, required: false}
+			input name: "about", type: "paragraph", element: "paragraph", title: "Wunderground Driver", description: "v.${version()}"
         }
     }
 }
