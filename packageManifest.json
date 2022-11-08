@@ -4,6 +4,8 @@
   "version": "6.9.1",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2022-11-08",
+  "releaseNotes": "Enabled the manual entry of Location (lat/long) for Forecasts etc",
+  "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141"
   "drivers": [
     {
       "id": "adde3e52-50ed-4c85-ab5a-786892b8fb71",
