@@ -19,7 +19,7 @@
  *
  *  Last Update 11/08/2022
  *
- *  v6.9.0 - Enabled the manual entry of Location (lat/long) for Forecasts etc
+ *  v6.9.1 - Enabled the manual entry of Location (lat/long) for Forecasts etc
  *  v6.8.3 - Added Error Checks when WU doesn't return all days of rain history
  *  v6.8.2 - Removed option PWS functionality - it just broke too many things - added version reporting
  *  v6.7.1 - Bug Fixes by @swade
