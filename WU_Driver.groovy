@@ -1,62 +1,63 @@
 		
 /**
- * Wunderground Driver
- *
- *  Maintained by Derek Osborn
- *
- *  This driver was originally written by @mattw01 and @Cobra
- *  Modified and fixed by @dJOS
- *  Additional contributions by @thebearmay @sburke781 @Busthead @swade
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License. You may obtain a copy of the License at:
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
- *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
- *  for the specific language governing permissions and limitations under the License.
- *
- *  Last Update 11/07/2022
- *
- *  v6.8.3 - Added Error Checks when WU doesn't return all days of rain history
- *  v6.8.2 - Removed option PWS functionality - it just broke too many things - added version reporting
- *  v6.7.1 - Bug Fixes by @swade
- *  v6.7.0 - Added Rain History Tile and Today/Tonight forecast header when forecast changes by @swade
- *	v6.6.0 - Implement Weather Warning Dashboard Tile + made 12:01am default day start for new installs + Forecast Data code restructure
- *	v6.5.1 - Implement Weather Warnings and Codes 
- *	v6.4.0 - Implement Day/night switching for most forecast items
- *	v6.3.2 - Fix a rain forecast bug
- *	v6.3.1 - Bug Fix for null on line 538 error
- *	v6.3.0 - Added 3 Day Weather Forecast Dashboard tile and additional data ingestion developed by @swade 
- *	v6.2.4 - Not all instances of log.info were checking if txtEnable == true
- *	v6.2.3 - Replaced logSet with txtEnable to conform with built-in drivers and consolidate Hubitat Preference Manager entries for better user experience
- *	v6.2.2 - Actually Fixed the Day/Night ForecastDayAfterTomorrow Icon switch over bug
- *	v6.2.1 - Fixed Day/Night ForecastDayAfterTomorrow Icon switch over bug
- *	v6.2.0 - Improved formatting, fixed debug.logging and added Station Location to the Tiles
- *	v6.1.1 - Broke 3 Day FC into individual tiles due to 1024 char limit
- *	v6.0.2 - Tile bug fixes
- *	v6.0.1 - Added a 3 Day Forecast Dashboard Tile 
- *			 (thanks to @thebearmay for his extensive HTML assistance and @sburke781 for his help with CSS)
- *	v5.7.0 - Added a 3rd day of forecast data "forecastDayAfterTomorrow" including Icon
- *	v5.6.5 - Fixed Polling Bug
- *	v5.6.4 - Removed extra fields due to excess events being generated
- *	v5.6.3 - Removed Snow fields due to excess events being generated
- *	v5.6.2 - Added 6 new fields - Thunder, Snow & UV
- *	v5.6.1 - Minor Bug Fix 
- *	v5.6.0 - add selectable language eg en-GB or en-US 
- *	v5.5.0 - WU Icons now hosted on GitHub
- *	v5.4.0 - Bug Fixes
- *	v5.3.0 - Major to changes forecastToday to auto-switch to night info including fixing icons to match
- *	v5.2.0 - Modified to add forecastToday and forecastTomorrow by Derek Osborn
- *	v5.1.0 - Modified to use latitude and longitude from the hub and add cloudCover by Derek Osborn
- *	V5.0.0 - Release by @Cobra
- *	V1.0.0 - Original @mattw01 version
- *
- */
+* Wunderground Driver
+*
+*  Maintained by Derek Osborn
+*
+*  This driver was originally written by @mattw01 and @Cobra
+*  Modified and fixed by @dJOS
+*  Additional contributions by @thebearmay @sburke781 @Busthead @swade @kampto
+*
+*  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+*  in compliance with the License. You may obtain a copy of the License at:
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+*  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+*  for the specific language governing permissions and limitations under the License.
+*
+*  Last Update 11/08/2022
+*
+*	v6.9.2 - Enabled the manual entry of Location (lat/long) for Forecasts etc
+*	v6.8.3 - Added Error Checks when WU doesn't return all days of rain history
+*	v6.8.2 - Removed option PWS functionality - it just broke too many things - added version reporting
+*	v6.7.1 - Bug Fixes by @swade
+*	v6.7.0 - Added Rain History Tile and Today/Tonight forecast header when forecast changes by @swade
+*	v6.6.0 - Implement Weather Warning Dashboard Tile + made 12:01am default day start for new installs + Forecast Data code restructure
+*	v6.5.1 - Implement Weather Warnings and Codes 
+*	v6.4.0 - Implement Day/night switching for most forecast items
+*	v6.3.2 - Fix a rain forecast bug
+*	v6.3.1 - Bug Fix for null on line 538 error
+*	v6.3.0 - Added 3 Day Weather Forecast Dashboard tile and additional data ingestion developed by @swade 
+*	v6.2.4 - Not all instances of log.info were checking if txtEnable == true
+*	v6.2.3 - Replaced logSet with txtEnable to conform with built-in drivers and consolidate Hubitat Preference Manager entries for better user experience
+*	v6.2.2 - Actually Fixed the Day/Night ForecastDayAfterTomorrow Icon switch over bug
+*	v6.2.1 - Fixed Day/Night ForecastDayAfterTomorrow Icon switch over bug
+*	v6.2.0 - Improved formatting, fixed debug.logging and added Station Location to the Tiles
+*	v6.1.1 - Broke 3 Day FC into individual tiles due to 1024 char limit
+*	v6.0.2 - Tile bug fixes
+*	v6.0.1 - Added a 3 Day Forecast Dashboard Tile 
+*			 (thanks to @thebearmay for his extensive HTML assistance and @sburke781 for his help with CSS)
+*	v5.7.0 - Added a 3rd day of forecast data "forecastDayAfterTomorrow" including Icon
+*	v5.6.5 - Fixed Polling Bug
+*	v5.6.4 - Removed extra fields due to excess events being generated
+*	v5.6.3 - Removed Snow fields due to excess events being generated
+*	v5.6.2 - Added 6 new fields - Thunder, Snow & UV
+*	v5.6.1 - Minor Bug Fix 
+*	v5.6.0 - add selectable language eg en-GB or en-US 
+*	v5.5.0 - WU Icons now hosted on GitHub
+*	v5.4.0 - Bug Fixes
+*	v5.3.0 - Major to changes forecastToday to auto-switch to night info including fixing icons to match
+*	v5.2.0 - Modified to add forecastToday and forecastTomorrow by Derek Osborn
+*	v5.1.0 - Modified to use latitude and longitude from the hub and add cloudCover by Derek Osborn
+*	V5.0.0 - Release by @Cobra
+*	V1.0.0 - Original @mattw01 version
+*
+*/
 
 def version() {
-    return "6.8.3"
+    return "6.9.2"
 }
 
 metadata {
@@ -159,17 +160,14 @@ metadata {
         attribute "fCstRainToday", "number"
         attribute "fCstRainTomorrow", "number"
         attribute "fCstRainDayAfterTomorrow", "number"
-        attribute "moonPhase", "string"
-        attribute "moonIllumination", "number"
-        attribute "latitude", "decimal"
-		attribute "longitude", "decimal"
- 		attribute "DriverAuthor", "string"
-        attribute "DriverVersion", "string"
+        attribute "moonPhase", "string"        
+ 		// attribute "DriverAuthor", "string"
+        // attribute "DriverVersion", "string"
 		attribute "humidity", "number"
 		attribute "station_location", "string"
         attribute "elevation", "number"
-        //attribute "rainYesterday", "number"
-        //attribute "rainDayBeforeYesterday", "number"
+        // attribute "rainYesterday", "number"
+        // attribute "rainDayBeforeYesterday", "number"
         attribute "lastUpdateCheck", "string"
         attribute "lastPollTime", "string"
         attribute "cloudCover", "number"
@@ -179,11 +177,16 @@ metadata {
         attribute "weatherWarningCodeTomorrow", "string"
 		attribute "weatherWarningDATomorrow", "string"
         attribute "weatherWarningCodeDATomorrow", "string"
-        attribute "driverVersion", "string"        
+        attribute "moonIllumination", "number"
+        attribute "latitude", "decimal"
+		attribute "longitude", "decimal"
+        attribute "latitudeCust", "decimal"
+		attribute "longitudeCust", "decimal"
     }
     preferences() {
         section("Query Inputs"){
-            input "apiKey", "text", required: true, title: "API Key"
+			input name: "about", type: "paragraph", element: "paragraph", title: "Wunderground Driver", description: "v.${version()}"
+			input "apiKey", "text", required: true, title: "API Key"
             input "pollLocation", "text", required: true, title: "Personal Weather Station ID"
 			input "unitFormat", "enum", required: true, title: "Unit Format",  options: ["Imperial", "Metric", "UK Hybrid"]
             if(unitFormat == "UK Hybrid"){input "unitElevation", "bool", required: false, title: "Use Metric for elevation (m)", defaultValue: false}
@@ -195,16 +198,22 @@ metadata {
             input "pollIntervalLimit", "number", title: "Poll Interval Limit:", required: true, defaultValue: 1
             input "autoPoll", "bool", required: false, title: "Enable Auto Poll"
             input "pollInterval", "enum", title: "Auto Poll Interval:", required: false, defaultValue: "5 Minutes", options: ["5 Minutes", "10 Minutes", "15 Minutes", "30 Minutes", "1 Hour", "3 Hours"]
-            input "txtEnable", "bool", title: "Enable Detailed logging", required: false, defaultValue: false
-            input "cutOff", "time", title: "New Day Starts", required: true, defaultValue: "00:01"
+                        input "cutOff", "time", title: "New Day Starts", required: true, defaultValue: "00:01"
+            input "gpsCoords", "bool", title: "Use custom GPS Coordinates for Forecast?", defaultvalue: false, submitOnChange: true
+			if (gpsCoords) {
+			input "latitudeCust", "text", title: "Enter Latitude in decimals, EX: 37.48644", defaultValue: 0, width: 6, required: false
+			input "longitudeCust", "text", title: "Enter Longitude in decimals, EX: -121.932309", defaultValue: 0, width: 6, required: false}
             input "threedayforecast", "bool", title: "Create a 3-Day Forecast Tile", required: false, defaultValue: false
             input "rainhistory", "bool", title: "Create a 7-Day Rain History Tile", required: false, defaultValue: false
             if(threedayforecast && rainhistory){
             input "raindaysdisplay", "enum", title: "Rain History Days to Display On 3-Day Forecast Tile: (Requires 3-day Forecast and Rain History Tiles)", required: false, defaultValue: "No selection", options: ["None", "Yesterday", "Last 3-Days", "Last 5-Days", "Last 7-Days"]}
-            input name: "about", type: "paragraph", element: "paragraph", title: "Wunderground Driver", description: "v.${version()}"
-        }
+			input "txtEnable", "bool", title: "Enable Detailed logging", required: false, defaultValue: false
+			}
     }
 }
+
+
+
 
 def updated() {
     if(txtEnable){log.debug "updated called"}
@@ -292,6 +301,7 @@ def forcePoll(){
     unschedule("dayRainChange")  //needed to remove unused method    
     //state.NumOfPolls = (state.NumOfPolls) + 1
     //sendEvent(name: "pollsSinceReset", value: state.NumOfPolls, isStateChange: state.force )
+	locationCoOrds()
 	poll1()
     pauseExecution(5000)
 	poll2()
@@ -301,15 +311,15 @@ def forcePoll(){
         poll3()
         pauseExecution(5000)
     }
-    
+    pauseExecution(5000)
     updateTile1()
     updateTile2()
     updateTile3()
     updateTile4()
-    
+
     if(txtEnable == true){log.info "3-Day Forecast Tile: $threedayforecast"}
     wu3dayfcst()
-    
+   
     if(txtEnable == true){log.info "7-Day Rain History: $rainhistory"}
     rainTile()
 
@@ -317,6 +327,21 @@ def forcePoll(){
     state.LastTime1 = date.format('HH:mm', location.timeZone)
     sendEvent(name: "lastPollTime", value: state.LastTime1)
 }
+
+def locationCoOrds(){	
+    if(gpsCoords){
+			state.latt1 = latitudeCust
+			state.long1 = longitudeCust
+			sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
+			sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
+			}
+		else{    
+			state.latt1 = (location.getLatitude())
+			state.long1 = (location.getLongitude())
+			sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
+			sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
+			}
+		}	
 	
 def poll1(){
     formatUnit()  
@@ -344,15 +369,7 @@ def pollHandler1(resp, data) {
 			sendEvent(name: "humidity", value: obs.observations.humidity[0], isStateChange: state.force )
             sendEvent(name: "observation_time", value: obs.observations.obsTimeLocal[0], isStateChange: state.force )
             sendEvent(name: "wind_degree", value: obs.observations.winddir[0], isStateChange: state.force )		
-			//state.latt1 = (location.getLatitude())
-			//state.long1 = (location.getLongitude())
-            //def latt1Saved = (location.getLatitude())
-            //def long1Saved = (location.getLongitude()) 
-            //if(latt1Saved == null){sendLocationEvent(name: "lattSaved", value: state.latt1)}
-            //if(long1Saved == null){sendLocationEvent(name: "longSaved", value: state.long1)}                              
-            //if(txtEnable == true){log.debug "Poll1 - state.latt1 = $state.latt1 -- state.long1 = $state.long1 -- latt1Saved = $latt1Saved -- long1Saved = $long1Saved  "}
-			//sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
-			//sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
+
         if(unitFormat == "Imperial"){
             sendEvent(name: "precip_rate", value: obs.observations.imperial.precipRate[0], isStateChange: state.force )
             //state.todayRain = obs.observations.imperial.precipTotal[0]
@@ -407,11 +424,6 @@ def pollHandler1(resp, data) {
 
 def poll2(){
     formatUnit()
-    state.latt1 = (location.getLatitude())
-    state.long1 = (location.getLongitude())
-	sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
-	sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
-
     def params2 = [uri: "https://api.weather.com/v3/wx/forecast/daily/5day?geocode=${state.latt1},${state.long1}&units=${state.unit}&language=${state.languagef}&format=json&apiKey=${apiKey}"]
     if(txtEnable == true){log.debug "Poll2 - state.latt1 = $state.latt1 -- state.long1 = $state.long1"}
     asynchttpGet("pollHandler2", params2)
