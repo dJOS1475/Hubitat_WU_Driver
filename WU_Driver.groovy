@@ -203,6 +203,10 @@ metadata {
 			if (gpsCoords) {
 			input "latitudeCust", "text", title: "Enter Latitude in decimals, EX: 37.48644", defaultValue: 0, width: 6, required: false
 			input "longitudeCust", "text", title: "Enter Longitude in decimals, EX: -121.932309", defaultValue: 0, width: 6, required: false}
+            input "threedayforecast", "bool", title: "Create a 3-Day Forecast Tile", required: false, defaultValue: false
+            input "rainhistory", "bool", title: "Create a 7-Day Rain History Tile", required: false, defaultValue: false
+            if(threedayforecast && rainhistory){
+            input "raindaysdisplay", "enum", title: "Rain History Days to Display On 3-Day Forecast Tile: (Requires 3-day Forecast and Rain History Tiles)", required: false, defaultValue: "No selection", options: ["None", "Yesterday", "Last 3-Days", "Last 5-Days", "Last 7-Days"]}
 			input "txtEnable", "bool", title: "Enable Detailed logging", required: false, defaultValue: false
 			}
     }
@@ -302,14 +306,23 @@ def forcePoll(){
     pauseExecution(5000)
 	poll2()
 	pauseExecution(5000)
-    poll3()
+    if (rainhistory)
+    {
+        poll3()
+        pauseExecution(5000)
+    }
     pauseExecution(5000)
     updateTile1()
     updateTile2()
     updateTile3()
     updateTile4()
+
+    if(txtEnable == true){log.info "3-Day Forecast Tile: $threedayforecast"}
     wu3dayfcst()
+   
+    if(txtEnable == true){log.info "7-Day Rain History: $rainhistory"}
     rainTile()
+
     def date = new Date()
     state.LastTime1 = date.format('HH:mm', location.timeZone)
     sendEvent(name: "lastPollTime", value: state.LastTime1)
@@ -750,131 +763,184 @@ def updateTile4() {
 
 // HTML 3 Day Forecast Tile Logic
 def wu3dayfcst() {
+    if(txtEnable == true){log.info "3-Day Forecast: $threedayforecast"}
 
     String sTD='<td>'
     String sTR='<tr><td>'
-    String iconSunrise = '<img src=https://tinyurl.com/icnqz/wsr.png>'
-    String iconSunset = '<img src=https://tinyurl.com/icnqz/wss.png>'
-    String degreeSign
+   	String my3day
     
-    if(state.unit == "e")
+    if(txtEnable == true){log.info "3-Day Forecast: $threedayforecast"}
+    if(threedayforecast)
     {
-        degreeSign = "°F"
-    }
-    else
-        if(state.unit == "m")
+        String iconSunrise = '<img src=https://tinyurl.com/icnqz/wsr.png>'
+        String iconSunset = '<img src=https://tinyurl.com/icnqz/wss.png>'
+        String degreeSign
+    
+        if(state.unit == "e")
         {
-        degreeSign = "°C"
+            degreeSign = "°F"
         }
         else
-            if(state.unit == "h")
+            if(state.unit == "m")
             {
                 degreeSign = "°C"
             }
+            else
+                if(state.unit == "h")
+                {
+                    degreeSign = "°C"
+                }
 
-    if(txtEnable == true){log.info "state.unit = $state.unit"}
-    if(txtEnable == true){log.info "DegreeSign = $degreeSign"}
+        if(txtEnable == true){log.info "state.unit = $state.unit"}
+        if(txtEnable == true){log.info "DegreeSign = $degreeSign"}
 
-    int Tstart = "${device.currentValue('sunriseTimeLocal')}".indexOf('T')
-    int Tstop1 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstart)
-    int Tstop2 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstop1+1)
-    String sunriseLocal = "${device.currentValue('sunriseTimeLocal')}".substring(Tstart+1, Tstop2)
-    String strSunrise = "${convert24to12(sunriseLocal)}" 
-    if(txtEnable == true){log.info "Sunrise = $strSunrise"}
-
-    Tstart = "${device.currentValue('sunsetTimeLocal')}".indexOf('T')
-    Tstop1 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstart)
-    Tstop2 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstop1+1)
-    String sunsetLocal = "${device.currentValue('sunsetTimeLocal')}".substring(Tstart+1, Tstop2)
-    String strSunset = "${convert24to12(sunsetLocal)}"
-    if(txtEnable == true){log.info "Sunset = $strSunset"}
+        int Tstart = "${device.currentValue('sunriseTimeLocal')}".indexOf('T')
+        int Tstop1 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstart)
+        int Tstop2 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstop1+1)
+        String sunriseLocal = "${device.currentValue('sunriseTimeLocal')}".substring(Tstart+1, Tstop2)
+        String strSunrise = "${convert24to12(sunriseLocal)}" 
+        if(txtEnable == true){log.info "Sunrise = $strSunrise"}
     
-    String strRainToday = ''
-    //("${device.currentValue('precip_today')}" != '')
-    if ("${device.currentValue('precip_today')}")
-    {
-        BigDecimal rainToday = "${device.currentValue('precip_today')}".toBigDecimal()
-        if(rainToday > 0.00)
+        Tstart = "${device.currentValue('sunsetTimeLocal')}".indexOf('T')
+        Tstop1 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstart)
+        Tstop2 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstop1+1)
+        String sunsetLocal = "${device.currentValue('sunsetTimeLocal')}".substring(Tstart+1, Tstop2)
+        String strSunset = "${convert24to12(sunsetLocal)}"
+        if(txtEnable == true){log.info "Sunset = $strSunset"}
+    
+        String strRainToday = ''
+        //("${device.currentValue('precip_today')}" != '')
+        if ("${device.currentValue('precip_today')}")
         {
-            strRainToday = ' / ' + rainToday.toString()
+            BigDecimal rainToday = "${device.currentValue('precip_today')}".toBigDecimal()
+            if(rainToday > 0.00)
+            {
+                strRainToday = ' / ' + rainToday.toString()
+            }
         }
+
+        if(txtEnable == true){log.info "rainToday = $rainToday"}
+    
+        String lastPoll = convert24to12("${device.currentValue('lastPollTime')}")
+    
+    	my3day = '<table >'
+        my3day += '<TR>' 
+    	my3day += '<th>' + "<B> ${device.currentValue('station_location')}</B>" + '</th>'
+    	my3day += '<th style="min-width:5%"></th>'
+    	my3day += '<th>' + "${device.currentValue("forecastTimeName")}" + '</th>'
+    	my3day += '<th style="min-width:5%"></th>'
+    	my3day += '<th>' + "${device.currentValue('tomorrow')}" + '</th>'
+    	my3day += '<th style="min-width:5%"></th>'
+    	my3day += '<th>' + "${device.currentValue('dayAfterTomorrow')}" + '</th>'
+        my3day += sTR
+        my3day += "Now " + "${device.currentValue('temperature')} " + degreeSign + "<br>Feels ${device.currentValue('feelsLike')} "+ degreeSign + "<br>Humidity ${device.currentValue('humidity')}" + '%'
+    	my3day += sTD
+    	my3day += sTD + "${device.currentValue('forecastTodayIcon')}" 
+    	my3day += sTD
+    	my3day += sTD + "${device.currentValue('forecastTomorrowIcon')}" 
+	    my3day += sTD
+    	my3day += sTD + "${device.currentValue('forecastDayAfterTomorrowIcon')}"
+    	my3day += sTR
+    	my3day += ""
+	    my3day += sTD
+    	my3day += sTD + "${device.currentValue('forcastPhraseToday')}"
+    	my3day += sTD
+    	my3day += sTD + "${device.currentValue('forcastPhraseTomorrow')}"
+    	my3day += sTD
+    	my3day += sTD + "${device.currentValue('forcastPhraseDayAfterTomorrow')}"
+    	my3day += sTR
+    	my3day += 'High/Low'
+    	my3day += sTD
+    	my3day += sTD + "${device.currentValue('temperatureMaxToday')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinToday')}" + degreeSign
+    	my3day += sTD
+    	my3day += sTD + "${device.currentValue('temperatureMaxTomorrow')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinTomorrow')}" + degreeSign
+	    my3day += sTD
+    	my3day += sTD + "${device.currentValue('temperatureMaxDayAfterTomorrow')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinDayAfterTomorrow')}" + degreeSign 
+    	my3day += sTR
+    	my3day += 'Chance Precip' 
+    	my3day += sTD
+    	my3day += sTD + "${device.currentValue('precipChanceToday')}" + "%" + strRainToday 
+    	my3day += sTD
+    	my3day += sTD + "${device.currentValue('precipChanceTomorrow')}" + "%" 
+    	my3day += sTD
+    	my3day += sTD + "${device.currentValue('precipChanceDayAfterTomorrow')}" + "%" 
+        my3day += '<tr> <td colspan="7">'  //blank line
+
+        if (rainhistory) 
+        {
+            if(txtEnable == true){log.info "Rain History Days: $raindaysdisplay"}
+            switch(raindaysdisplay) {        
+                case "No selection": 
+                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+                    break; 
+                case "None": 
+                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+                    break; 
+                 case "Yesterday": 
+                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + 'Yesterday: ' + "${device.currentValue('precip_Yesterday')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+                    break; 
+                 case "Last 3-Days": 
+                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + 'Rain3: ' + "${device.currentValue('precip_Last3Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+                    break; 
+                 case "Last 5-Days": 
+                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + 'Rain5: ' + "${device.currentValue('precip_Last5Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+                    break; 
+                 case "Last 7-Days": 
+                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + 'Rain7: ' + "${device.currentValue('precip_Last7Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+                    break; 
+                 default: 
+                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+                    break; 
+            }
+        }
+        else
+        {
+            my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+        }
+    	my3day += '</table>'
+
+        if(txtEnable == true){log.info 'html3dayfcst length: (' + my3day.length() + ')'}
+
+        if(my3day.length() > 1024) {
+		    log.error('Too much data to display.</br></br>Current threedayfcstTile length (' + my3day.length() + ') exceeds maximum tile length by ' + (my3day.length() - 1024).toString()  + ' characters.')
+            my3day = '<table>' + sTR + 'Error! Tile greater than 1024 characters. ' + sTR + my3day.length() + ' exceeds maximum tile length by ' + (my3day.length() - 1024).toString() + ' characters.' + sTR + 'Replacing 3 day with todays forecast<br>' + "${device.currentValue('htmlToday')}" + '</table>'
+    	}
     }
-
-    if(txtEnable == true){log.info "rainToday = $rainToday"}
-    
-    String lastPoll = convert24to12("${device.currentValue('lastPollTime')}")
-    
-	String my3day
-	my3day = '<table >'
-    my3day += '<TR>' 
-	my3day += '<th>' + "<B> ${device.currentValue('station_location')}</B>" + '</th>'
-	my3day += '<th style="min-width:5%"></th>'
-	my3day += '<th>' + "${device.currentValue("forecastTimeName")}" + '</th>'
-	my3day += '<th style="min-width:5%"></th>'
-	my3day += '<th>' + "${device.currentValue('tomorrow')}" + '</th>'
-	my3day += '<th style="min-width:5%"></th>'
-	my3day += '<th>' + "${device.currentValue('dayAfterTomorrow')}" + '</th>'
-    my3day += sTR
-    my3day += "Now " + "${device.currentValue('temperature')} " + degreeSign + "<br>Feels ${device.currentValue('feelsLike')} "+ degreeSign + "<br>Humidity ${device.currentValue('humidity')}" + '%'
-	my3day += sTD
-	my3day += sTD + "${device.currentValue('forecastTodayIcon')}" 
-	my3day += sTD
-	my3day += sTD + "${device.currentValue('forecastTomorrowIcon')}" 
-	my3day += sTD
-	my3day += sTD + "${device.currentValue('forecastDayAfterTomorrowIcon')}"
-	my3day += sTR
-	my3day += ""
-	my3day += sTD
-	my3day += sTD + "${device.currentValue('forcastPhraseToday')}"
-	my3day += sTD
-	my3day += sTD + "${device.currentValue('forcastPhraseTomorrow')}"
-	my3day += sTD
-	my3day += sTD + "${device.currentValue('forcastPhraseDayAfterTomorrow')}"
-	my3day += sTR
-	my3day += 'High/Low'
-	my3day += sTD
-	my3day += sTD + "${device.currentValue('temperatureMaxToday')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinToday')}" + degreeSign
-	my3day += sTD
-	my3day += sTD + "${device.currentValue('temperatureMaxTomorrow')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinTomorrow')}" + degreeSign
-	my3day += sTD
-	my3day += sTD + "${device.currentValue('temperatureMaxDayAfterTomorrow')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinDayAfterTomorrow')}" + degreeSign 
-	my3day += sTR
-	my3day += 'Chance Precip' 
-	my3day += sTD
-	my3day += sTD + "${device.currentValue('precipChanceToday')}" + "%" + strRainToday 
-	my3day += sTD
-	my3day += sTD + "${device.currentValue('precipChanceTomorrow')}" + "%" 
-	my3day += sTD
-	my3day += sTD + "${device.currentValue('precipChanceDayAfterTomorrow')}" + "%" 
-    my3day += '<tr> <td colspan="7">'  //blank line
-    my3day += '<tr style="font-size:75%"> <td colspan="7">' + 'Rain7: ' + "${device.currentValue('precip_Last7Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
-	my3day += '</table>'
-
-    if(txtEnable == true){log.info 'html3dayfcst length: (' + my3day.length() + ')'}
-
-    if(my3day.length() > 1024) {
-		log.error('Too much data to display.</br></br>Current threedayfcstTile length (' + my3day.length() + ') exceeds maximum tile length by ' + (my3day.length() - 1024).toString()  + ' characters.')
-        my3day = '<table>' + sTR + 'Error! Tile greater than 1024 characters. ' + sTR + my3day.length() + ' exceeds maximum tile length by ' + (my3day.length() - 1024).toString() + ' characters.' + sTR + 'Replacing 3 day with todays forecast<br>' + "${device.currentValue('htmlToday')}" + '</table>'
-	}
+    else
+    {
+        my3day = '<table>' + sTR + 'Not Configured!' + '</table>'
+    }
 	sendEvent(name: 'html3dayfcst', value: my3day.take(1024))
 
 }
 
 // HTML Tiles Logic
 def rainTile() {
-	if(txtEnable == true){log.debug "rainTile called"}		// log the data returned by WU//		
+    
+   	String htmlRainTile
+
+    if(txtEnable == true){log.debug "rainTile called"}
     htmlRainTile ="<table>"
     htmlRainTile +='<tr style="font-size:80%"><td>' +  "${device.currentValue('station_location')}<br>Rain History"
-    htmlRainTile +='<tr style="font-size:85%"><td>Yesterday: ' + "${device.currentValue('precip_Yesterday')}"
-    htmlRainTile +='<tr style="font-size:85%"><td>Last 3 Days: ' + "${device.currentValue('precip_Last3Days')}"
-    htmlRainTile +='<tr style="font-size:85%"><td>Last 5 Days: ' + "${device.currentValue('precip_Last5Days')}"
-    htmlRainTile +='<tr style="font-size:85%"><td>Last 7 Days: ' + "${device.currentValue('precip_Last7Days')}"
-    htmlRainTile +='<tr style="font-size:85%"><td> &nbsp;&nbsp;&nbsp;'  //blank line
-	htmlRainTile +='</table>'
+    if(rainhistory)
+    {
+        htmlRainTile +='<tr style="font-size:85%"><td>Yesterday: ' + "${device.currentValue('precip_Yesterday')}"
+        htmlRainTile +='<tr style="font-size:85%"><td>Last 3 Days: ' + "${device.currentValue('precip_Last3Days')}"
+        htmlRainTile +='<tr style="font-size:85%"><td>Last 5 Days: ' + "${device.currentValue('precip_Last5Days')}"
+        htmlRainTile +='<tr style="font-size:85%"><td>Last 7 Days: ' + "${device.currentValue('precip_Last7Days')}"
+        htmlRainTile +='<tr style="font-size:85%"><td> &nbsp;&nbsp;&nbsp;'  //blank line
+    	htmlRainTile +='</table>'
+    }
+    else
+    {
+        htmlRainTile +='<tr style="font-size:95%"><td>Not Configured!' + '</table>'
+    }
+
     sendEvent(name: "htmlRainTile", value: "$htmlRainTile")
-	if(txtEnable == true){log.debug "htmlRainTile contains ${htmlRainTile}"}		// log the data returned by WU//	
-	if(txtEnable == true){log.debug 'htmlRainTile length: "${htmlRainTile.length()}"'}		// log the data returned by WU//
-	}
+  	if(txtEnable == true){log.debug "htmlRainTile contains ${htmlRainTile}"}		// log the data returned by WU//	
+    if(txtEnable == true){log.debug 'htmlRainTile length: "${htmlRainTile.length()}"'}		// log the data returned by WU//
+
+}
 
 String convert24to12(String input )
 {
