@@ -1,10 +1,10 @@
 {
   "packageName": "Enhanced Weather Underground Driver",
   "author": "Derek Osborn",
-  "version": "6.9.2",
+  "version": "6.9.3",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2022-11-08",
-  "releaseNotes": "Enabled the manual entry of Location (lat/long) for Forecasts etc",
+  "releaseNotes": "v6.9.3 - additional Logic to deal with only 6 days of rain data by @swade",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
