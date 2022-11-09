@@ -18,3 +18,6 @@ for the specific language governing permissions and limitations under the Licens
 Hubitat Community Topic: 
 
 https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141
+
+
+Also Available via Hubitat Package Manager
