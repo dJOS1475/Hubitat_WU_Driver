@@ -16,4 +16,5 @@ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expres
 for the specific language governing permissions and limitations under the License.
 
 Hubitat Community Topic: 
+
 https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141
