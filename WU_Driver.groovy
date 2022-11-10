@@ -59,7 +59,7 @@
 */
 
 def version() {
-    return "6.9.4"
+    return "6.9.5"
 }
 
 metadata {
