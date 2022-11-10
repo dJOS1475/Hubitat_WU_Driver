@@ -610,12 +610,12 @@ def pollHandler3(resp1, data) {
         rain7List = rain7List.replace("]","")
         if(txtEnable == true){log.info "Repl: $rain7List"}
         
+        def BigDecimal bd6
         if (daysCount == 7)
         {
             (day6, day5, day4, day3, day2, day1, day0) = rain7List.tokenize( ',' )
             if(txtEnable == true){log.info "Day 6: $day6, Day 5: $day5, Day 4: $day4, Day 3: $day3, Day 2: $day2, Day 1: $day1, Day 0: $day0"}
 
-            BigDecimal bd6
             if (day6.trim() != 'null' && day6.trim() != '')
             {
                 if (day6 != null) {bd6 = day6.toBigDecimal()} else {bd6 = 0}
@@ -633,7 +633,7 @@ def pollHandler3(resp1, data) {
             bd6 = 0.00
         }
         
-        BigDecimal bd5
+        def BigDecimal bd5
         if (day5.trim() != 'null' && day5.trim() != '')
         {
             if (day5 != null) {bd5 = day5.toBigDecimal()} else {bd5 = 0}
@@ -643,7 +643,7 @@ def pollHandler3(resp1, data) {
             bd5 = 0.00
         }
 
-        BigDecimal bd4
+        def BigDecimal bd4
         if (day4.trim() != 'null' && day4.trim() != '')
         {
             if (day4 != null) {bd4 = day4.toBigDecimal()} else {bd4 = 0}
@@ -653,7 +653,7 @@ def pollHandler3(resp1, data) {
             bd4 = 0.00
         }
 
-        BigDecimal bd3
+        def BigDecimal bd3
         if (day3.trim() != 'null' && day3.trim() != '')
         {
             if (day3 != null) {bd3 = day3.toBigDecimal()} else {bd3 = 0}
@@ -663,7 +663,7 @@ def pollHandler3(resp1, data) {
             bd3 = 0.00
         }
 
-        BigDecimal bd2
+        def BigDecimal bd2
         if (day2.trim() != 'null' && day2.trim() != '')
         {
             if (day2 != null) {bd2 = day2.toBigDecimal()} else {bd2 = 0}
@@ -673,7 +673,7 @@ def pollHandler3(resp1, data) {
             bd2 = 0.00
         }
 
-        BigDecimal bd1
+        def BigDecimal bd1
         if (day1.trim() != 'null' && day1.trim() != '')
         {
             if (day1 != null) {bd1 = day1.toBigDecimal()} else {bd1 = 0}
@@ -683,7 +683,7 @@ def pollHandler3(resp1, data) {
             bd1 = 0.00
         }
 
-        BigDecimal bd0
+        def BigDecimal bd0
         if (day0.trim() != 'null' && day0.trim() != '')
         {
             if (day0 != null) {bd0 = day0.toBigDecimal()} else {bd0 = 0}
@@ -707,6 +707,7 @@ def pollHandler3(resp1, data) {
         
         //if (day1.trim()) {bd1 = day1.toBigDecimal()} else {bd1 = 0.00}
         
+        if(txtEnable == true){log.info "$bd6, $bd5, $bd4, $bd3, $bd2, $bd1, $bd0"}
         BigDecimal bdAll7 = bd6 + bd5 + bd4 + bd3 + bd2 + bd1 + bd0        
         String bdString7 = String.valueOf(bdAll7)
         if(txtEnable == true){log.info "7Days: " + bdString7}
