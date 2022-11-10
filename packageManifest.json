@@ -1,10 +1,10 @@
 {
   "packageName": "Enhanced Weather Underground Driver",
   "author": "Derek Osborn",
-  "version": "6.9.3",
+  "version": "6.9.4",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2022-11-08",
-  "releaseNotes": "v6.9.3 - additional Logic to deal with only 6 days of rain data, Plus the ability to turn on or off the 3 day forecast and 7 rain history day tiles. by @swade",
+  "releaseNotes": "v6.9.4 - Helps with WU only sending 6 days history for some PWS",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
