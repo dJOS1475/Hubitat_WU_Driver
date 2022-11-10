@@ -19,6 +19,7 @@
 *
 *  Last Update 11/08/2022
 *
+*	v6.9.4 - Helps with WU only sending 6 days history for some PWS
 *	v6.9.3 - additional Logic to deal with only 6 days of rain data by @swade
 *	v6.9.2 - Enabled the manual entry of Location (lat/long) for Forecasts etc
 *	v6.8.3 - Added Error Checks when WU doesn't return all days of rain history
@@ -58,7 +59,7 @@
 */
 
 def version() {
-    return "6.9.3"
+    return "6.9.4"
 }
 
 metadata {
