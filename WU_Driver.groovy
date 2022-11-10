@@ -606,7 +606,7 @@ def pollHandler3(resp1, data) {
         if(txtEnable == true){log.info "Count: $daysCount"}
         
         if(txtEnable == true){log.info "Orig: $rain7List"}
-        rain7List = rain7List.replace("[","")
+        rain7List = rain7List.replace("[","") 
         rain7List = rain7List.replace("]","")
         if(txtEnable == true){log.info "Repl: $rain7List"}
         
