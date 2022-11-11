@@ -4,7 +4,7 @@
   "version": "6.9.3",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2022-11-08",
-  "releaseNotes": "v6.9.4 - Helps with WU only sending 6 days history for some PWS",
+  "releaseNotes": "Rolled back to 6.9.3",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
