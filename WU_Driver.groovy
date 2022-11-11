@@ -19,7 +19,6 @@
 *
 *  Last Update 11/08/2022
 *
-*	v6.9.5 - Helps with WU only sending 6 days history for some PWS
 *	v6.9.3 - additional Logic to deal with only 6 days of rain data by @swade
 *	v6.9.2 - Enabled the manual entry of Location (lat/long) for Forecasts etc
 *	v6.8.3 - Added Error Checks when WU doesn't return all days of rain history
@@ -59,7 +58,7 @@
 */
 
 def version() {
-    return "6.9.5"
+    return "6.9.3"
 }
 
 metadata {
@@ -79,7 +78,6 @@ metadata {
         command "forcePoll"
  	    command "resetPollCount"
  	    
- 	    attribute "rainHistoryDays", "number"
  	    attribute "forecastTimeName", "string"
         attribute "htmlRainTile", "string"
         attribute "precip_Yesterday", "string"
@@ -209,7 +207,7 @@ metadata {
             input "threedayforecast", "bool", title: "Create a 3-Day Forecast Tile", required: false, defaultValue: false
             input "rainhistory", "bool", title: "Create a 7-Day Rain History Tile", required: false, defaultValue: false
             if(threedayforecast && rainhistory){
-            input "raindaysdisplay", "enum", title: "Rain History Days to Display On 3-Day Forecast Tile: (Requires 3-day Forecast and Rain History Tiles) (1st/2nd number Days depends on WU returning 6 or 7 day history) ", required: false, defaultValue: "No selection", options: ["None", "Yesterday", "Last 2/3-Days", "Last 4/5-Days", "Last 6/7-Days"]}
+            input "raindaysdisplay", "enum", title: "Rain History Days to Display On 3-Day Forecast Tile: (Requires 3-day Forecast and Rain History Tiles)", required: false, defaultValue: "No selection", options: ["None", "Yesterday", "Last 3-Days", "Last 5-Days", "Last 7-Days"]}
 			input "txtEnable", "bool", title: "Enable Detailed logging", required: false, defaultValue: false
 			}
     }
@@ -597,83 +595,15 @@ def pollHandler3(resp1, data) {
                     if(txtEnable == true){log.info "7DayRain: $obs2.summaries.imperial.precipTotal[0]"}
                 }
         
-        def day7List = []
-        day7List = (obs2.summaries.obsTimeLocal)
-        if(txtEnable == true){log.info "day7List: $day7List"}
-        
-        int daysCount = day7List.size()
-        sendEvent(name: "rainHistoryDays", value: daysCount, isStateChange: state.force )
-        if(txtEnable == true){log.info "Count: $daysCount"}
-        
         if(txtEnable == true){log.info "Orig: $rain7List"}
-        rain7List = rain7List.replace("[","") 
+        rain7List = rain7List.replace("[","")
         rain7List = rain7List.replace("]","")
         if(txtEnable == true){log.info "Repl: $rain7List"}
         
-        def BigDecimal bd6
-        if (daysCount == 7)
-        {
-            (day6, day5, day4, day3, day2, day1, day0) = rain7List.tokenize( ',' )
-            if(txtEnable == true){log.info "Day 6: $day6, Day 5: $day5, Day 4: $day4, Day 3: $day3, Day 2: $day2, Day 1: $day1, Day 0: $day0"}
-
-            if (day6.trim() != 'null' && day6.trim() != '')
-            {
-                if (day6 != null) {bd6 = day6.toBigDecimal()} else {bd6 = 0}
-            }
-            else
-            {
-                bd6 = 0.00
-            }
-        }
-        if (daysCount == 6)
-        {
-            (day5, day4, day3, day2, day1, day0) = rain7List.tokenize( ',' )
-            if(txtEnable == true){log.info "Day 5: $day5, Day 4: $day4, Day 3: $day3, Day 2: $day2, Day 1: $day1, Day 0: $day0"}
-
-            bd6 = 0.00
-        }
+        def (day1, day2, day3, day4, day5, day6, day7) = rain7List.tokenize( ',' )
+        if(txtEnable == true){log.info "Day 1: $day1, Day 2: $day2, Day 3: $day3, Day 4: $day4, Day 5: $day5, Day 6: $day6, Day 7: $day7"}
         
-        def BigDecimal bd5
-        if (day5.trim() != 'null' && day5.trim() != '')
-        {
-            if (day5 != null) {bd5 = day5.toBigDecimal()} else {bd5 = 0}
-        }
-        else
-        {
-            bd5 = 0.00
-        }
-
-        def BigDecimal bd4
-        if (day4.trim() != 'null' && day4.trim() != '')
-        {
-            if (day4 != null) {bd4 = day4.toBigDecimal()} else {bd4 = 0}
-        }
-        else
-        {
-            bd4 = 0.00
-        }
-
-        def BigDecimal bd3
-        if (day3.trim() != 'null' && day3.trim() != '')
-        {
-            if (day3 != null) {bd3 = day3.toBigDecimal()} else {bd3 = 0}
-        }
-        else
-        {
-            bd3 = 0.00
-        }
-
-        def BigDecimal bd2
-        if (day2.trim() != 'null' && day2.trim() != '')
-        {
-            if (day2 != null) {bd2 = day2.toBigDecimal()} else {bd2 = 0}
-        }
-        else
-        {
-            bd2 = 0.00
-        }
-
-        def BigDecimal bd1
+        BigDecimal bd1
         if (day1.trim() != 'null' && day1.trim() != '')
         {
             if (day1 != null) {bd1 = day1.toBigDecimal()} else {bd1 = 0}
@@ -682,48 +612,99 @@ def pollHandler3(resp1, data) {
         {
             bd1 = 0.00
         }
-
-        def BigDecimal bd0
-        if (day0.trim() != 'null' && day0.trim() != '')
+        //if (day1.trim()) {bd1 = day1.toBigDecimal()} else {bd1 = 0.00}
+        
+        
+        BigDecimal bd2
+        if (day2.trim() != 'null' && day2.trim() != '')
         {
-            if (day0 != null) {bd0 = day0.toBigDecimal()} else {bd0 = 0}
+            if (day2 != null) {bd2 = day2.toBigDecimal()} else {bd2 = 0}
         }
         else
         {
-            bd0 = 0.00
+            bd2 = 0.00
         }
-        //try{
-        //    if (day7.trim() != 'null' && day7.trim() != '')
-        //    {
-        //        if (day7 != null) {bd7 = day7.toBigDecimal()} else {bd7 = 0}
-        //    }        
-        //}catch(Exception e)
-        //    {
-        //        bd7 = 0.00
-        //        log.warn "WU did not return all rain values on this attempt. Missing at least 1 day's rain. Will retry on next interval."
-        //        log.warn "Needs 7 values: $rain7List"
-        //        log.warn "error: $e"
-        //    }   
+        //if (day2) {bd2 = day2.toBigDecimal()} else {bd2 = 0}
+        BigDecimal bd3
+        if (day3.trim() != 'null' && day3.trim() != '')
+        {
+            if (day3 != null) {bd3 = day3.toBigDecimal()} else {bd3 = 0}
+        }
+        else
+        {
+            bd3 = 0.00
+        }
+        //if (day3) {bd3 = day3.toBigDecimal()} else {bd3 = 0}
+        BigDecimal bd4
+        if (day4.trim() != 'null' && day4.trim() != '')
+        {
+            if (day4 != null) {bd4 = day4.toBigDecimal()} else {bd4 = 0}
+        }
+        else
+        {
+            bd4 = 0.00
+        }
+        //if (day4) {bd4 = day4.toBigDecimal()} else {bd4 = 0}
+        BigDecimal bd5
+        if (day5.trim() != 'null' && day5.trim() != '')
+        {
+            if (day5 != null) {bd5 = day5.toBigDecimal()} else {bd5 = 0}
+        }
+        else
+        {
+            bd5 = 0.00
+        }
+        //if (day5) {bd5 = day5.toBigDecimal()} else {bd5 = 0}
+        BigDecimal bd6
+        if (day6.trim() != 'null' && day6.trim() != '')
+        {
+            if (day6 != null) {bd6 = day6.toBigDecimal()} else {bd6 = 0}
+        }
+        else
+        {
+            bd6 = 0.00
+        }
+        //if (day6) {bd6 = day6.toBigDecimal()} else {bd6 = 0}
+        BigDecimal bd7
+        try{
+            if (day7.trim() != 'null' && day7.trim() != '')
+            {
+                if (day7 != null) {bd7 = day7.toBigDecimal()} else {bd7 = 0}
+            }        
+        }catch(Exception e)
+            {
+                bd7 = 0.00
+                log.warn "WU did not return all rain values on this attempt. Missing at least 1 day's rain. Will retry on next interval."
+                log.warn "Needs 7 values: $rain7List"
+                log.warn "error: $e"
+            }   
         
-        //if (day1.trim()) {bd1 = day1.toBigDecimal()} else {bd1 = 0.00}
+        //if (day7.trim() != 'null' && day7.trim() != '')
+        //{
+        //    if (day7 != null) {bd7 = day7.toBigDecimal()} else {bd7 = 0}
+        //}
+        //else
+        //{
+        //    bd7 = 0.00
+        //}
+        // (day7) {bd7 = day7.toBigDecimal()} else {bd7 = 0}
         
-        if(txtEnable == true){log.info "$bd6, $bd5, $bd4, $bd3, $bd2, $bd1, $bd0"}
-        BigDecimal bdAll7 = bd6 + bd5 + bd4 + bd3 + bd2 + bd1 + bd0        
+        BigDecimal bdAll7 = bd1 + bd2 + bd3 + bd4 + bd5 + bd6 + bd7        
         String bdString7 = String.valueOf(bdAll7)
         if(txtEnable == true){log.info "7Days: " + bdString7}
         sendEvent(name: "precip_Last7Days", value: bdString7, isStateChange: state.force )        
         
-        BigDecimal bdAll5 = bd5 + bd4 + bd3 + bd2 + bd1 + bd0       
+        BigDecimal bdAll5 = bd2 + bd3 + bd4 + bd5 + bd6 + bd7       
         String bdString5 = String.valueOf(bdAll5)
         if(txtEnable == true){log.info "5Days: " + bdString5}
         sendEvent(name: "precip_Last5Days", value: bdString5, isStateChange: state.force )
         
-        BigDecimal bdAll3 = bd3 + bd2 + bd1 + bd0        
+        BigDecimal bdAll3 = bd4 + bd5 + bd6 + bd7        
         String bdString3 = String.valueOf(bdAll3)
         if(txtEnable == true){log.info "3Days: " + bdString3}
         sendEvent(name: "precip_Last3Days", value: bdString3, isStateChange: state.force )
         
-        BigDecimal bdYesterday = bd1
+        BigDecimal bdYesterday = bd6
         String bdStringYesterday = String.valueOf(bdYesterday)
         if(txtEnable == true){log.info "3Days: " + bdStringYesterday}
         sendEvent(name: "precip_Yesterday", value: bdStringYesterday, isStateChange: state.force )
@@ -888,25 +869,6 @@ def wu3dayfcst() {
 
         if (rainhistory) 
         {
-            int totalRainDays = device.currentValue('rainHistoryDays')
-
-            String s1stHeader
-            String s2ndHeader
-            String s3rdHeader
-    
-            if(totalRainDays == 7)
-            {
-                s1stHeader = "Last 3 Days:"
-                s2ndHeader = "Last 5 Days:"
-                s3rdHeader = "Last 7 Days:"
-            }
-            else
-            {
-                s1stHeader = "Last 2 Days:"
-                s2ndHeader = "Last 4 Days:"
-                s3rdHeader = "Last 6 Days:"
-            }
-            
             if(txtEnable == true){log.info "Rain History Days: $raindaysdisplay"}
             switch(raindaysdisplay) {        
                 case "No selection": 
@@ -916,16 +878,16 @@ def wu3dayfcst() {
                     my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
                     break; 
                  case "Yesterday": 
-                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + 'Yesterday:' + " ${device.currentValue('precip_Yesterday')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + 'Yesterday: ' + "${device.currentValue('precip_Yesterday')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
                     break; 
-                 case "Last 2/3-Days": 
-                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + s1stHeader + " ${device.currentValue('precip_Last3Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+                 case "Last 3-Days": 
+                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + 'Rain3: ' + "${device.currentValue('precip_Last3Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
                     break; 
-                 case "Last 4/5-Days": 
-                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + s2ndHeader + " ${device.currentValue('precip_Last5Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+                 case "Last 5-Days": 
+                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + 'Rain5: ' + "${device.currentValue('precip_Last5Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
                     break; 
-                 case "Last 6/7-Days": 
-                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + s3rdHeader + " ${device.currentValue('precip_Last7Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+                 case "Last 7-Days": 
+                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + 'Rain7: ' + "${device.currentValue('precip_Last7Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
                     break; 
                  default: 
                     my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
@@ -957,34 +919,16 @@ def wu3dayfcst() {
 def rainTile() {
     
    	String htmlRainTile
-    int totalRainDays = device.currentValue('rainHistoryDays')
-
-    String s1stHeader
-    String s2ndHeader
-    String s3rdHeader
-    
-    if(totalRainDays == 7)
-    {
-        s1stHeader = "Last 3 Days:"
-        s2ndHeader = "Last 5 Days:"
-        s3rdHeader = "Last 7 Days:"
-    }
-    else
-    {
-        s1stHeader = "Last 2 Days:"
-        s2ndHeader = "Last 4 Days:"
-        s3rdHeader = "Last 6 Days:"
-    }
 
     if(txtEnable == true){log.debug "rainTile called"}
     htmlRainTile ="<table>"
-    htmlRainTile +='<tr style="font-size:80%"><td>' +  "${device.currentValue('station_location')}<br>$totalRainDays Day Rain History"
+    htmlRainTile +='<tr style="font-size:80%"><td>' +  "${device.currentValue('station_location')}<br>Rain History"
     if(rainhistory)
     {
-        htmlRainTile +='<tr style="font-size:85%"><td>Yesterday:' + " ${device.currentValue('precip_Yesterday')}"
-        htmlRainTile +='<tr style="font-size:85%"><td>' + s1stHeader + " ${device.currentValue('precip_Last3Days')}"
-        htmlRainTile +='<tr style="font-size:85%"><td>' + s2ndHeader + " ${device.currentValue('precip_Last5Days')}"
-        htmlRainTile +='<tr style="font-size:85%"><td>' + s3rdHeader + " ${device.currentValue('precip_Last7Days')}"
+        htmlRainTile +='<tr style="font-size:85%"><td>Yesterday: ' + "${device.currentValue('precip_Yesterday')}"
+        htmlRainTile +='<tr style="font-size:85%"><td>Last 3 Days: ' + "${device.currentValue('precip_Last3Days')}"
+        htmlRainTile +='<tr style="font-size:85%"><td>Last 5 Days: ' + "${device.currentValue('precip_Last5Days')}"
+        htmlRainTile +='<tr style="font-size:85%"><td>Last 7 Days: ' + "${device.currentValue('precip_Last7Days')}"
         htmlRainTile +='<tr style="font-size:85%"><td> &nbsp;&nbsp;&nbsp;'  //blank line
     	htmlRainTile +='</table>'
     }
