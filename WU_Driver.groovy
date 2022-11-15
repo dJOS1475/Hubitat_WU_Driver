@@ -19,7 +19,7 @@
 *
 *  Last Update 11/08/2022
 *
-*	v6.10.0 - @swade fixed all my loFi code and made lots of improvements under the hood 
+*	v6.10.0 - @swade fixed all my LoFi code and made lots of improvements under the hood 
 *			- it is highly recommended that you use the "ClearState" function and then force a manual poll after upgrading to this version.
 *	v6.9.4 - Helps with WU only sending 6 days history for some PWS
 *	v6.9.3 - additional Logic to deal with only 6 days of rain data by @swade
