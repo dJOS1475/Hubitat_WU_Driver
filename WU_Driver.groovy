@@ -17,8 +17,9 @@
 *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
 *  for the specific language governing permissions and limitations under the License.
 *
-*  Last Update 11/08/2022
+*  Last Update 11/16/2022
 *
+*	v6.10.1 - Changed rain history defaults to enabled with 6/7 days of history
 *	v6.10.0 - @swade fixed all my LoFi code and made lots of improvements under the hood 
 *			- it is highly recommended that you use the "ClearState" function and then force a manual poll after upgrading to this version.
 *			- Also, please make sure after you upgrade before you do a poll, you save preferences even if you don't make any changes.
@@ -213,10 +214,10 @@ metadata {
 			if (gpsCoords) {
 			input "latitudeCust", "text", title: "Enter Latitude in decimals, EX: 37.48644", defaultValue: 0, width: 6, required: false
 			input "longitudeCust", "text", title: "Enter Longitude in decimals, EX: -121.932309", defaultValue: 0, width: 6, required: false}
-            input "threedayforecast", "bool", title: "Create a 3-Day Forecast Tile", required: false, defaultValue: false
-            input "rainhistory", "bool", title: "Create a 7-Day Rain History Tile", required: false, defaultValue: false
+            input "threedayforecast", "bool", title: "Create a 3-Day Forecast Tile", required: false, defaultValue: true
+            input "rainhistory", "bool", title: "Create a 7-Day Rain History Tile", required: false, defaultValue: true
             if(threedayforecast && rainhistory){
-            input "raindaysdisplay", "enum", title: "Rain History Days to Display On 3-Day Forecast Tile: (Requires 3-day Forecast and Rain History Tiles) (1st/2nd number Days depends on WU returning 6 or 7 day history) ", required: false, defaultValue: "No selection", options: ["None", "Yesterday", "Last 2/3-Days", "Last 4/5-Days", "Last 6/7-Days"]}
+            input "raindaysdisplay", "enum", title: "Rain History Days to Display On 3-Day Forecast Tile: (Requires 3-day Forecast and Rain History Tiles) (1st/2nd number Days depends on WU returning 6 or 7 day history) ", required: false, defaultValue: "Last 6/7-Days", options: ["None", "Yesterday", "Last 2/3-Days", "Last 4/5-Days", "Last 6/7-Days"]}
 			input "txtEnable", "bool", title: "Enable Detailed logging<br>(auto off in 15 minutes)", required: false, defaultValue: false
 			}
     }
