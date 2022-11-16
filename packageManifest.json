@@ -1,7 +1,7 @@
 {
   "packageName": "Enhanced Weather Underground Driver",
   "author": "Derek Osborn",
-  "version": "6.10.0",
+  "version": "6.10.1",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2022-11-08",
   "releaseNotes": "v6.10.0 - @swade fixed all my LoFi code and made lots of improvements under the hood - it is highly recommended that you use the ClearState function and then force a manual poll after upgrading to this version. Also please make sure after you upgrade before you do a poll, you save preferences even if you don't make any changes. v6.10.1 - Changed rain history defaults to enabled with 6/7 days of history",
