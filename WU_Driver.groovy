@@ -17,8 +17,10 @@
 *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
 *  for the specific language governing permissions and limitations under the License.
 *
-*  Last Update 11/16/2022
+*  Last Update 2022/12/22
 *
+
+*	v6.10.2 - Weather earnings Big fix
 *	v6.10.1 - Changed rain history defaults to enabled with 6/7 days of history
 *	v6.10.0 - @swade fixed all my LoFi code and made lots of improvements under the hood 
 *			- it is highly recommended that you use the "ClearState" function and then force a manual poll after upgrading to this version.
@@ -602,7 +604,7 @@ def pollHandler2(resp1, data) {
 			//state.weatherWarningDATomorrow = (obs1.daypart[0].qualifierPhrase[4])
             String weatherWarningDATomorrow = (obs1.daypart[0].qualifierPhrase[4])
 			if(weatherWarningDATomorrow == null){sendEvent(name: "weatherWarningDATomorrow", value: "None")}
-			else {sendEvent(name: "weatherWarningDATomorrow", value: weatherWarningDATomorro)}	              		
+			else {sendEvent(name: "weatherWarningDATomorrow", value: weatherWarningDATomorrow)}	              		
 			
             //state.weatherWarningCodeDATomorrow = (obs1.daypart[0].qualifierCode[4])
             String weatherWarningCodeDATomorrow = (obs1.daypart[0].qualifierCode[4])
