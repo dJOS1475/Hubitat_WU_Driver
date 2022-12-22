@@ -65,7 +65,7 @@
 */
 
 def version() {
-    return "6.10.1"
+    return "6.10.2"
 }
 
 metadata {
