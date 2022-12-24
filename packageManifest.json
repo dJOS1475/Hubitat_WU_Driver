@@ -4,7 +4,7 @@
   "version": "6.10.2",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2022-11-08",
-  "releaseNotes": "v6.10.2 - Weather warnings Bug fix",
+  "releaseNotes": "v6.10.3 - Fix typo's",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
