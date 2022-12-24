@@ -19,7 +19,8 @@
 *
 *  Last Update 2022/12/22
 *
-
+*
+*	v6.10.3 - Fix typo's
 *	v6.10.2 - Weather earnings Big fix
 *	v6.10.1 - Changed rain history defaults to enabled with 6/7 days of history
 *	v6.10.0 - @swade fixed all my LoFi code and made lots of improvements under the hood 
@@ -65,7 +66,7 @@
 */
 
 def version() {
-    return "6.10.2"
+    return "6.10.3"
 }
 
 metadata {
@@ -102,9 +103,9 @@ metadata {
 	    attribute "temperatureMinToday", "string"
 	    attribute "temperatureMinTomorrow", "string"
 	    attribute "temperatureMinDayAfterTomorrow", "string"
-	    attribute "forcastPhraseToday", "string"
-	    attribute "forcastPhraseTomorrow", "string"
-	    attribute "forcastPhraseDayAfterTomorrow", "string"
+	    attribute "forecastPhraseToday", "string"
+	    attribute "forecastPhraseTomorrow", "string"
+	    attribute "forecastPhraseDayAfterTomorrow", "string"
 	    attribute "precipChanceToday", "string"
  	    attribute "precipChanceTomorrow", "string"
 	    attribute "precipChanceDayAfterTomorrow", "string"
@@ -488,8 +489,8 @@ def pollHandler2(resp1, data) {
             sendEvent(name: "temperatureMinToday", value: obs1.calendarDayTemperatureMin[0])
             sendEvent(name: "temperatureMinTomorrow", value: obs1.calendarDayTemperatureMin[1])
             sendEvent(name: "temperatureMinDayAfterTomorrow", value: obs1.calendarDayTemperatureMin[2]) 
-            sendEvent(name: "forcastPhraseTomorrow", value: obs1.daypart[0].wxPhraseLong[2])
-            sendEvent(name: "forcastPhraseDayAfterTomorrow", value: obs1.daypart[0].wxPhraseLong[4])     
+            sendEvent(name: "forecastPhraseTomorrow", value: obs1.daypart[0].wxPhraseLong[2])
+            sendEvent(name: "forecastPhraseDayAfterTomorrow", value: obs1.daypart[0].wxPhraseLong[4])     
             sendEvent(name: "precipChanceTomorrow", value: obs1.daypart[0].precipChance[2])
             sendEvent(name: "precipChanceDayAfterTomorrow", value: obs1.daypart[0].precipChance[4])           
             sendEvent(name: "sunsetTimeLocal", value: obs1.sunsetTimeLocal[0])
@@ -524,7 +525,7 @@ def pollHandler2(resp1, data) {
             if(device.currentValue('dayOrNight') == "N"){
 // Weather Nightime Data
                 sendEvent(name: "forecastTimeName", value: obs1.daypart[0].daypartName[1])
-                sendEvent(name: "forcastPhraseToday", value: obs1.daypart[0].wxPhraseLong[1])
+                sendEvent(name: "forecastPhraseToday", value: obs1.daypart[0].wxPhraseLong[1])
 				sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[1])
 				sendEvent(name: "precipType", value: obs1.daypart[0].precipType[1])
 				sendEvent(name: "cloudCover", value: obs1.daypart[0].precipChance[1])        	
@@ -545,7 +546,7 @@ def pollHandler2(resp1, data) {
 // Weather Daytime Data
         	else {
                 sendEvent(name: "forecastTimeName", value: obs1.daypart[0].daypartName[0])
-				sendEvent(name: "forcastPhraseToday", value: obs1.daypart[0].wxPhraseLong[0])
+				sendEvent(name: "forecastPhraseToday", value: obs1.daypart[0].wxPhraseLong[0])
 				sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[0])
 				sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0])
 				sendEvent(name: "cloudCover", value: obs1.daypart[0].precipChance[0])         
@@ -948,11 +949,11 @@ def wu3dayfcst() {
     	my3day += sTR
     	my3day += ""
 	    my3day += sTD
-    	my3day += sTD + "${device.currentValue('forcastPhraseToday')}"
+    	my3day += sTD + "${device.currentValue('forecastPhraseToday')}"
     	my3day += sTD
-    	my3day += sTD + "${device.currentValue('forcastPhraseTomorrow')}"
+    	my3day += sTD + "${device.currentValue('forecastPhraseTomorrow')}"
     	my3day += sTD
-    	my3day += sTD + "${device.currentValue('forcastPhraseDayAfterTomorrow')}"
+    	my3day += sTD + "${device.currentValue('forecastPhraseDayAfterTomorrow')}"
     	my3day += sTR
     	my3day += 'High/Low'
     	my3day += sTD
