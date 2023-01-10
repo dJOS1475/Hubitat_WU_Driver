@@ -20,6 +20,7 @@
 *  Last Update 2022/12/22
 *
 *
+*	v6.10.4 - Fix broken Custom GPS Coordinates Option
 *	v6.10.3 - Fix typo's
 *	v6.10.2 - Weather earnings Big fix
 *	v6.10.1 - Changed rain history defaults to enabled with 6/7 days of history
@@ -66,7 +67,7 @@
 */
 
 def version() {
-    return "6.10.3"
+    return "6.10.4"
 }
 
 metadata {
@@ -361,32 +362,23 @@ def poll(){
     rainTile()
 }
 
-def locationCoOrds(){
-    
-    def polllatitude
-    def polllongitude
-    
+def locationCoOrds(){	
     if(gpsCoords){
-        polllatitude = device.currentValue('latitudeCust')
-        polllongitude = device.currentValue('longitudeCust')
-		//state.latt1 = latitudeCust
-		//state.long1 = longitudeCust
-		//sendEvent(name: "latitude", value: device.currentValue('latitudeCust'), isStateChange: state.force )
-		//sendEvent(name: "longitude", value: device.currentValue('longitudeCust'), isStateChange: state.force )
-		}
+			state.latt1 = latitudeCust
+			state.long1 = longitudeCust
+			sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
+			sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
+			}
 		else{    
-        polllatitude = location.getLatitude()
-        polllongitude = location.getLongitude()
-		//state.latt1 = (location.getLatitude())
-		//state.long1 = (location.getLongitude())
-		//sendEvent(name: "latitude", value: location.getLatitude(), isStateChange: state.force )
-		//sendEvent(name: "longitude", value: location.getLongitude(), isStateChange: state.force )
-		}
-	sendEvent(name: "latitude", value: polllatitude)
-	sendEvent(name: "longitude", value: polllongitude)
-    if(txtEnable == true){log.info "latitude: $polllatitude"}
-    if(txtEnable == true){log.info "longitude: $polllongitude"}
-}	
+			state.latt1 = (location.getLatitude())
+			state.long1 = (location.getLongitude())
+			sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
+			sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
+			}
+    if(txtEnable == true){log.info "latitude: ${device.currentValue('latitude')}"}
+    if(txtEnable == true){log.info "longitude: ${device.currentValue('longitude')}"}	
+	}	
+
 
 def poll1(){
     formatUnit()  
