@@ -355,10 +355,8 @@ def poll(){
     updateTile3()
     updateTile4()
 
-    if(txtEnable == true){log.info "3-Day Forecast Tile: $threedayforecast"}
     wu3dayfcst()
    
-    if(txtEnable == true){log.info "7-Day Rain History: $rainhistory"}
     rainTile()
 }
 
@@ -851,15 +849,14 @@ def updateTile4() {
 
 // HTML 3 Day Forecast Tile Logic
 def wu3dayfcst() {
-    if(txtEnable == true){log.info "3-Day Forecast: $threedayforecast"}
 
-    String sTD='<td>'
-    String sTR='<tr><td>'
    	String my3day
     
     if(txtEnable == true){log.info "3-Day Forecast: $threedayforecast"}
     if(threedayforecast)
     {
+        String sTD='<td>'
+        String sTR='<tr><td>'
         String iconSunrise = '<img src=https://tinyurl.com/icnqz/wsr.png>'
         String iconSunset = '<img src=https://tinyurl.com/icnqz/wss.png>'
         String degreeSign
@@ -1030,35 +1027,38 @@ def wu3dayfcst() {
 def rainTile() {
     
    	String htmlRainTile
-    String s1stHeader
-    String s2ndHeader
-    String s3rdHeader
-    
-    int totalRainDays = device.currentValue('rainHistoryDays')
-    if(totalRainDays == 7)
-    {
-        s1stHeader = "Last 3 Days:"
-        s2ndHeader = "Last 5 Days:"
-        s3rdHeader = "Last 7 Days:"
-    }
-    else
-    {
-        s1stHeader = "Last 2 Days:"
-        s2ndHeader = "Last 4 Days:"
-        s3rdHeader = "Last 6 Days:"
-    }
 
-    if(txtEnable == true){log.debug "rainTile called"}
-    htmlRainTile ="<table>"
-    htmlRainTile +='<tr style="font-size:80%"><td>' +  "${device.currentValue('station_location')}<br>$totalRainDays Day Rain History"
-    if(rainhistory)
-    {
+    if(txtEnable == true){log.info "7-Day Rain History: $rainhistory"}
+    if (rainhistory) {
+        String s1stHeader
+        String s2ndHeader
+        String s3rdHeader
+        
+        int totalRainDays = device.currentValue('rainHistoryDays')
+        if(totalRainDays == 7)
+        {
+            s1stHeader = "Last 3 Days:"
+            s2ndHeader = "Last 5 Days:"
+            s3rdHeader = "Last 7 Days:"
+        }
+        else
+        {
+            s1stHeader = "Last 2 Days:"
+            s2ndHeader = "Last 4 Days:"
+            s3rdHeader = "Last 6 Days:"
+        }
+    
+        if(txtEnable == true){log.debug "rainTile called"}
+        htmlRainTile ="<table>"
+        htmlRainTile +='<tr style="font-size:80%"><td>' +  "${device.currentValue('station_location')}<br>$totalRainDays Day Rain History"
         htmlRainTile +='<tr style="font-size:85%"><td>Yesterday:' + " ${device.currentValue('precip_Yesterday')}"
         htmlRainTile +='<tr style="font-size:85%"><td>' + s1stHeader + " ${device.currentValue('precip_Last3Days')}"
         htmlRainTile +='<tr style="font-size:85%"><td>' + s2ndHeader + " ${device.currentValue('precip_Last5Days')}"
         htmlRainTile +='<tr style="font-size:85%"><td>' + s3rdHeader + " ${device.currentValue('precip_Last7Days')}"
         htmlRainTile +='<tr style="font-size:85%"><td> &nbsp;&nbsp;&nbsp;'  //blank line
-    	htmlRainTile +='</table>'
+        htmlRainTile +='</table>'
+        if(txtEnable == true){log.debug "htmlRainTile contains ${htmlRainTile}"}		        // log the data returned by WU//	
+        if(txtEnable == true){log.debug "htmlRainTile length: ${htmlRainTile.length()}"}		// log the data returned by WU//
     }
     else
     {
@@ -1066,8 +1066,6 @@ def rainTile() {
     }
 
     sendEvent(name: "htmlRainTile", value: "$htmlRainTile")
-  	if(txtEnable == true){log.debug "htmlRainTile contains ${htmlRainTile}"}		        // log the data returned by WU//	
-    if(txtEnable == true){log.debug "htmlRainTile length: ${htmlRainTile.length()}"}		// log the data returned by WU//
 
 }
 
