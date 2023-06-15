@@ -1,10 +1,12 @@
 {
   "packageName": "Enhanced Weather Underground Driver",
   "author": "Derek Osborn",
-  "version": "6.10.4",
+  "version": "7.00.1",
   "minimumHEVersion": "2.0.0",
-  "dateReleased": "2022-11-08",
-  "releaseNotes": "v6.10.4 - Fix broken Custom GPS Coordinates Option",
+  "dateReleased": "2023-06-15",
+  "releaseNotes": "v7.00.1 - Speed Improvements. Improve 3 Day Forecast Tile and removed FeelsLike value since it didn't seem to be correct. 
+                           - Improve Coding Logic. Added ICAO Airport Code for Forecasts.
+                           - Display an @ sign in forcast day if a WU warning exist for the day.  Since WU doesn't provide illuminance, stop using solar radiation as it's value",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
