@@ -1,4 +1,3 @@
-		
 /**
 * Wunderground Driver
 *
@@ -17,12 +16,11 @@
 *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
 *  for the specific language governing permissions and limitations under the License.
 *
-*  Last Update 2022/12/22
+*  Last Update 06/07/2023
 *
-*
-*	v6.10.4 - Fix broken Custom GPS Coordinates Option
-*	v6.10.3 - Fix typo's
-*	v6.10.2 - Weather earnings Big fix
+*	v7.00.1 - Speed Improvements. Improve 3 Day Forecast Tile and removed FeelsLike value since it didn't seem to be correct.
+*           - Improve Coding Logic. Added ICAO Airport Code for Forecasts.
+*           - Display an @ sign in forcast day if a WU warning exist for the day.  Since WU doesn't provide illuminance, stop using solar radiation as it's value
 *	v6.10.1 - Changed rain history defaults to enabled with 6/7 days of history
 *	v6.10.0 - @swade fixed all my LoFi code and made lots of improvements under the hood 
 *			- it is highly recommended that you use the "ClearState" function and then force a manual poll after upgrading to this version.
@@ -66,8 +64,9 @@
 *
 */
 
+import groovy.transform.Field
 def version() {
-    return "6.10.4"
+    return "7.00.1"
 }
 
 metadata {
@@ -78,16 +77,10 @@ metadata {
         capability "Illuminance Measurement"
         capability "Relative Humidity Measurement"
         
-//       command "dayRainChange"     // test code **************
-//       command "clearRainHistory"  // test code  *************
-
-//        command "forceUpdateOn"
-//       command "forceUpdateOff"
         command "poll", [[name:"Start a Manual Poll of Weather Underground Data"]]
-//        command "forcePoll"
-// 	    command "resetPollCount"
  	    command "clearState", [[name:"Use Only 1 time to Clear State Variables no Longer Used"]]
         
+        attribute "forcastPhraseTodayShort", "string"
         attribute "dayOrNight", "string"
         attribute "formatLanguage", "string"
  	    attribute "formatUnit", "string"
@@ -104,9 +97,9 @@ metadata {
 	    attribute "temperatureMinToday", "string"
 	    attribute "temperatureMinTomorrow", "string"
 	    attribute "temperatureMinDayAfterTomorrow", "string"
-	    attribute "forecastPhraseToday", "string"
-	    attribute "forecastPhraseTomorrow", "string"
-	    attribute "forecastPhraseDayAfterTomorrow", "string"
+	    attribute "forcastPhraseToday", "string"
+	    attribute "forcastPhraseTomorrow", "string"
+	    attribute "forcastPhraseDayAfterTomorrow", "string"
 	    attribute "precipChanceToday", "string"
  	    attribute "precipChanceTomorrow", "string"
 	    attribute "precipChanceDayAfterTomorrow", "string"
@@ -176,13 +169,9 @@ metadata {
         attribute "fCstRainTomorrow", "number"
         attribute "fCstRainDayAfterTomorrow", "number"
         attribute "moonPhase", "string"        
- 		// attribute "DriverAuthor", "string"
-        // attribute "DriverVersion", "string"
 		attribute "humidity", "number"
 		attribute "station_location", "string"
         attribute "elevation", "number"
-        // attribute "rainYesterday", "number"
-        // attribute "rainDayBeforeYesterday", "number"
         attribute "lastUpdateCheck", "string"
         attribute "lastPollTime", "string"
         attribute "cloudCover", "number"
@@ -197,12 +186,16 @@ metadata {
 		attribute "longitude", "decimal"
         attribute "latitudeCust", "decimal"
 		attribute "longitudeCust", "decimal"
+		attribute "TempUnit", "string"
+		attribute "SpeedUnit", "string"
+        
     }
     preferences() {
         section("Query Inputs"){
 			input name: "about", type: "paragraph", element: "paragraph", title: "Wunderground Driver", description: "v.${version()}"
 			input "apiKey", "text", required: true, title: "API Key"
             input "pollLocation", "text", required: true, title: "Personal Weather Station ID"
+            input "pollICAO", "text", required: false, title: "ICAO Airport Code (Forecast)"
 			input "unitFormat", "enum", required: true, title: "Unit Format",  options: ["Imperial", "Metric", "UK Hybrid"]
             if(unitFormat == "UK Hybrid"){input "unitElevation", "bool", required: false, title: "Use Metric for elevation (m)", defaultValue: false}
             input "language", "enum", required: true, title: "Language",  options: ["US", "GB"], defaultValue: US
@@ -210,14 +203,13 @@ metadata {
 			if(useIcons){
 			input "iconHeight1", "text", required: true, title: "Icon Height", defaultValue: 100
 			input "iconWidth1", "text", required: true, title: "Icon Width", defaultValue: 100}			
-            //input "pollIntervalLimit", "number", title: "Poll Interval Limit:", required: true, defaultValue: 1
             input "autoPoll", "bool", required: false, title: "Enable Auto Poll"
             input "pollInterval", "enum", title: "Auto Poll Interval:", required: false, defaultValue: "5 Minutes", options: ["5 Minutes", "10 Minutes", "15 Minutes", "30 Minutes", "1 Hour", "3 Hours"]
-            //input "cutOff", "time", title: "New Day Starts", required: true, defaultValue: "00:01"
             input "gpsCoords", "bool", title: "Use custom GPS Coordinates for Forecast?", defaultvalue: false, submitOnChange: true
 			if (gpsCoords) {
 			input "latitudeCust", "text", title: "Enter Latitude in decimals, EX: 37.48644", defaultValue: 0, width: 6, required: false
 			input "longitudeCust", "text", title: "Enter Longitude in decimals, EX: -121.932309", defaultValue: 0, width: 6, required: false}
+            input "weatherwarnings", "bool", title: "Get WU Weather Warnings", required: false, defaultValue: true
             input "threedayforecast", "bool", title: "Create a 3-Day Forecast Tile", required: false, defaultValue: true
             input "rainhistory", "bool", title: "Create a 7-Day Rain History Tile", required: false, defaultValue: true
             if(threedayforecast && rainhistory){
@@ -227,19 +219,22 @@ metadata {
     }
 }
 
+@Field static final String ImperialTempUnit='F'
+@Field static final String MetricTempUnit='C'
+@Field static final String HybridTempUnit='C'
+@Field static final String ImperialSpeedUnit='mph'
+@Field static final String MetricSpeedUnit='km/h'
+@Field static final String HybridSpeedUnit='km/h'
+
 def updated() {
     if(txtEnable){log.debug "updated called"}
-    //state.NumOfPolls = 0
     
     unschedule()
     poll()
 
-    //def changeOver = cutOff
-    //schedule(changeOver, resetPollCount)
     unschedule("changeOver")  //needed to remove unused method    
     
     unschedule("dayRainChange")  //needed to remove unused method    
-    //schedule(changeOver, dayRainChange)
     
     def pollIntervalCmd = (settings?.pollInterval ?: "5 Minutes").replace(" ", "")
     if(txtEnable == true){log.info "poll IntervalCmd: $pollIntervalCmd"}
@@ -249,78 +244,29 @@ def updated() {
     if(txtEnable){runIn(1800, logsOff)}
 }
 
-def clearState()
-{
+void clearState() {
     state.clear()
-    log.info "WU Driver State Cleared."
 }
-
-//def forceUpdateOn(){
-    //state.force = true 
-//    if(txtEnable == true){log.info "Force attribute refresh set to 'true'"}
-//}
-//def forceUpdateOff(){
-    //state.force = null
-//    if(txtEnable == true){log.info "Force attribute refresh set to 'false'"}
-//}
-
-//def resetPollCount(){
-	//state.NumOfPolls = -1
-//    if(txtEnable == true){log.info "Poll counter reset.."}
-//    forcePoll()
-//}
-
-//def clearRainHistory(){
-//    state.dayBeforeYesterdayRain = 0
-//    state.yesterdayRain = 0   
-//    sendEvent(name: "rainYesterday", value: state.yesterdayRain, isStateChange: true )  
-//    sendEvent(name: "rainDayBeforeYesterday", value: state.dayBeforeYesterdayRain, isStateChange: true )    
-//    }
-    
-//def dayRainChange(){
-//	state.rainToday = (location.todayRain) 
-//	state.dayBeforeYesterdayRain = state.yesterdayRain
-//	state.yesterdayRain = state.rainToday 
-//	sendEvent(name: "rainYesterday", value: state.yesterdayRain, isStateChange: state.force )  
-//	sendEvent(name: "rainDayBeforeYesterday", value: state.dayBeforeYesterdayRain, isStateChange: state.force )    
-//  }
 
 def pollSchedule(){
     poll()
 }
 
-//def parse(String description) {}
-
-//def poll() {
-//	if(now() - state.lastPoll > (pollIntervalLimit * 60000))
-//        forcePoll()
-//    else{log.warn "Poll called before interval threshold was reached"}
-//}
-
-def formatUnit(){
+def ValueFormating(){
 	if(unitFormat == "Imperial"){
-        sendEvent(name: "formatUnit", value: "e")  
-		//state.unit = "e"
-        //if(txtEnable == true){log.info "state.unit = $state.unit"}
+        updateTileAttr("formatUnit", "e")         
 	}
 	if(unitFormat == "Metric"){
-        sendEvent(name: "formatUnit", value: "m")  
-		//state.unit = "m"
-        //if(txtEnable == true){log.info "state.unit = $state.unit"}
+        updateTileAttr("formatUnit", "m")         
 	}
 	if(unitFormat == "UK Hybrid"){
-        sendEvent(name: "formatUnit", value: "h")  
-		//state.unit = "h"
-        //if(txtEnable == true){log.info "state.unit = $state.unit"}
+        updateTileAttr("formatUnit", "h")         
 	}
 	if(language == "US"){
-        sendEvent(name: "formatLanguage", value: "en-US")  
-		//state.languagef = "en-US"
+        updateTileAttr("formatLanguage", "en-US")         
 	}
 	if(language == "GB"){
-        sendEvent(name: "formatLanguage", value: "en-GB")  
-		//state.languagef = "en-GB"
-		//if(txtEnable == true){log.info "state.languagef = $state.languagef"}
+        updateTileAttr("formatLanguage", "en-GB")         
 	}
     if(txtEnable == true){log.info "formatUnit = ${device.currentValue('formatUnit')}"}
     if(txtEnable == true){log.info "formatLanguage = ${device.currentValue('formatLanguage')}"}
@@ -329,522 +275,527 @@ def formatUnit(){
 
 def poll(){
     if(txtEnable == true){log.debug "WU: Poll called"}
+    
     unschedule("changeOver")  //needed to remove unused method 
-    unschedule("dayRainChange")  //needed to remove unused method    
-    //state.NumOfPolls = (state.NumOfPolls) + 1
-    //sendEvent(name: "pollsSinceReset", value: state.NumOfPolls, isStateChange: state.force )
+    unschedule("dayRainChange")  //needed to remove unused method
+    
+    //remove the illuminance current state as it is not provided by WU
+    device.deleteCurrentState('illuminance')
+    
     def date = new Date()
-    //state.LastTime1 = date.format('HH:mm', location.timeZone)
-    sendEvent(name: "lastPollTime", value: date.format('HH:mm', location.timeZone))
+    updateTileAttr("lastPollTime", date.format('HH:mm', location.timeZone))
+    
+    clearState()
     locationCoOrds()
-
-    poll1()
-    pauseExecution(5000)
-	
-    poll2()
-	pauseExecution(5000)
+    ValueFormating()
     
-    if (rainhistory)
-    {
-        poll3()
-        pauseExecution(5000)
-    }
+    getObservations()
     
-    updateTile1()
-    updateTile2()
-    updateTile3()
-    updateTile4()
+    GetForcasts()
+    
+    TodayWeatherTile()
+    TomorrowWeatherTile()
+    DayAfterTomorrowWeatherTile()
 
     if(txtEnable == true){log.info "3-Day Forecast Tile: $threedayforecast"}
-    wu3dayfcst()
-   
-    if(txtEnable == true){log.info "7-Day Rain History: $rainhistory"}
-    rainTile()
-}
-
-def locationCoOrds(){	
-    if(gpsCoords){
-			state.latt1 = latitudeCust
-			state.long1 = longitudeCust
-			sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
-			sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
-			}
-		else{    
-			state.latt1 = (location.getLatitude())
-			state.long1 = (location.getLongitude())
-			sendEvent(name: "latitude", value: state.latt1, isStateChange: state.force )
-			sendEvent(name: "longitude", value: state.long1, isStateChange: state.force )
-			}
-    if(txtEnable == true){log.info "latitude: ${device.currentValue('latitude')}"}
-    if(txtEnable == true){log.info "longitude: ${device.currentValue('longitude')}"}	
-	}	
-
-
-def poll1(){
-    formatUnit()  
-    def params1 = [uri: "https://api.weather.com/v2/pws/observations/current?stationId=${pollLocation}&format=json&units=${device.currentValue('formatUnit')}&apiKey=${apiKey}"]
-    asynchttpGet("pollHandler1", params1)   
-}
-	
-def pollHandler1(resp, data) {
-	if(resp.getStatus() == 200 || resp.getStatus() == 207) {
-		obs = parseJson(resp.data)
-        if(txtEnable == true){log.debug "Response poll1 = $obs"}		// log the data returned by WU
-       
-    		def illume = (obs.observations.solarRadiation[0])
-            if(illume){
-            sendEvent(name: "illuminance", value: obs.observations.solarRadiation[0], unit: "lux")
-            sendEvent(name: "solarradiation", value: obs.observations.solarRadiation[0], unit: "W")
-            }
-            if(!illume){
-            sendEvent(name: "illuminance", value: "No Data")
-            sendEvent(name: "solarradiation", value: "No Data")
-            }
-            sendEvent(name: "stationID", value: obs.observations.stationID[0])
-            if(txtEnable == true){log.debug "stationID: $obs.observations.stationID"}
-			sendEvent(name: "stationType", value: obs.observations.softwareType[0])
-            if(txtEnable == true){log.debug "stationType: $obs.observations.softwareType"}
-            sendEvent(name: "station_location", value: obs.observations.neighborhood[0])
-            if(txtEnable == true){log.debug "station_location: $obs.observations.neighborhood"}
-			sendEvent(name: "humidity", value: obs.observations.humidity[0])
-            sendEvent(name: "observation_time", value: obs.observations.obsTimeLocal[0])
-            sendEvent(name: "wind_degree", value: obs.observations.winddir[0])		
-
-        if(unitFormat == "Imperial"){
-            sendEvent(name: "precip_rate", value: obs.observations.imperial.precipRate[0])
-            //state.todayRain = obs.observations.imperial.precipTotal[0]
-            //if(state.todayRain != null){sendLocationEvent(name: "todayRain", value: state.todayRain)}
-            sendEvent(name: "precip_today", value: obs.observations.imperial.precipTotal[0])
-			sendEvent(name: "feelsLike", value: obs.observations.imperial.windChill[0], unit: "F")
-            sendEvent(name: "temperature", value: obs.observations.imperial.temp[0], unit: "F")
-			sendEvent(name: "wind", value: obs.observations.imperial.windSpeed[0], unit: "mph")
-            sendEvent(name: "wind_gust", value: obs.observations.imperial.windGust[0]) 
-			sendEvent(name: "dewpoint", value: obs.observations.imperial.dewpt[0], unit: "F")
-			sendEvent(name: "pressure", value: obs.observations.imperial.pressure[0])
-			sendEvent(name: "elevation", value: obs.observations.imperial.elev[0])
-			}
-		if(unitFormat == "Metric"){
-            sendEvent(name: "precip_rate", value: obs.observations.metric.precipRate[0])
-            //state.todayRain = obs.observations.metric.precipTotal[0]
-            //if(state.todayRain != null){sendLocationEvent(name: "todayRain", value: state.todayRain)}
-            sendEvent(name: "precip_today", value: obs.observations.metric.precipTotal[0])
-			sendEvent(name: "feelsLike", value: obs.observations.metric.windChill[0], unit: "C")  
-            sendEvent(name: "temperature", value: obs.observations.metric.temp[0], unit: "C")
-			sendEvent(name: "wind", value: obs.observations.metric.windSpeed[0], unit: "kph")
-            sendEvent(name: "wind_gust", value: obs.observations.metric.windGust[0])
-			sendEvent(name: "dewpoint", value: obs.observations.metric.dewpt[0], unit: "C")
-			sendEvent(name: "pressure", value: obs.observations.metric.pressure[0])	
-			sendEvent(name: "elevation", value: obs.observations.metric.elev[0])
-			}
-		if(unitFormat == "UK Hybrid"){
-            sendEvent(name: "precip_rate", value: obs.observations.uk_hybrid.precipRate[0])
-            //state.todayRain = obs.observations.uk_hybrid.precipTotal[0]
-            //if(state.todayRain != null){sendLocationEvent(name: "todayRain", value: state.todayRain)}
-            sendEvent(name: "precip_today", value: obs.observations.uk_hybrid.precipTotal[0])
-			sendEvent(name: "feelsLike", value: obs.observations.uk_hybrid.windChill[0], unit: "C")
-            sendEvent(name: "temperature", value: obs.observations.uk_hybrid.temp[0], unit: "C")
-			sendEvent(name: "wind", value: obs.observations.uk_hybrid.windSpeed[0], unit: "mph")
-            sendEvent(name: "wind_gust", value: obs.observations.uk_hybrid.windGust[0])
-			sendEvent(name: "dewpoint", value: obs.observations.uk_hybrid.dewpt[0], unit: "C")
-			sendEvent(name: "pressure", value: obs.observations.uk_hybrid.pressure[0])
-            if(unitElevation){
-            def elevation1 = obs.observations.uk_hybrid.elev[0]
-            def elevation2 = elevation1.toFloat()
-            def elevation = (elevation2 * 0.3048).toInteger()
-			sendEvent(name: "elevation", value: elevation,unit: "m")
-            }
-            else {sendEvent(name: "elevation", value: obs.observations.uk_hybrid.elev[0], unit: "ft")}
-			}
-			//state.lastPoll = now()
-} else {
-        def res = resp.getStatus()
-		log.warn "WU weather api did not return data from poll1 - $res"
-	}
-}        	
-
-def poll2(){
-    formatUnit()
-    def params2 = [uri: "https://api.weather.com/v3/wx/forecast/daily/5day?geocode=${device.currentValue('latitude')},${device.currentValue('longitude')}&units=${device.currentValue('formatUnit')}&language=${device.currentValue('formatlanguage')}&format=json&apiKey=${apiKey}"]
-    if(txtEnable == true){log.debug "Poll2 - latitude = ${device.currentValue('latitude')} -- longitude = ${device.currentValue('longitude')}"}
-    asynchttpGet("pollHandler2", params2)
-}
+    if(threedayforecast)
+    {
+        wu3dayfcst()
+    }
     
-def pollHandler2(resp1, data) {
-	if(resp1.getStatus() == 200 || resp1.getStatus() == 207) {
-		obs1 = parseJson(resp1.data)
-        if(txtEnable == true){log.debug "Response poll2 = $obs1"}		// log the data returned by WU
-// Weather General Data
-            sendEvent(name: "temperatureMaxToday", value: obs1.temperatureMax[0])
-        	sendEvent(name: "temperatureMaxToday", value: obs1.calendarDayTemperatureMax[0])
-            sendEvent(name: "temperatureMaxTomorrow", value: obs1.calendarDayTemperatureMax[1])
-            sendEvent(name: "temperatureMaxDayAfterTomorrow", value: obs1.calendarDayTemperatureMax[2])
-            sendEvent(name: "temperatureMinToday", value: obs1.calendarDayTemperatureMin[0])
-            sendEvent(name: "temperatureMinTomorrow", value: obs1.calendarDayTemperatureMin[1])
-            sendEvent(name: "temperatureMinDayAfterTomorrow", value: obs1.calendarDayTemperatureMin[2]) 
-            sendEvent(name: "forecastPhraseTomorrow", value: obs1.daypart[0].wxPhraseLong[2])
-            sendEvent(name: "forecastPhraseDayAfterTomorrow", value: obs1.daypart[0].wxPhraseLong[4])     
-            sendEvent(name: "precipChanceTomorrow", value: obs1.daypart[0].precipChance[2])
-            sendEvent(name: "precipChanceDayAfterTomorrow", value: obs1.daypart[0].precipChance[4])           
-            sendEvent(name: "sunsetTimeLocal", value: obs1.sunsetTimeLocal[0])
-            sendEvent(name: "sunriseTimeLocal", value: obs1.sunriseTimeLocal[0])            
-            sendEvent(name: "today", value: obs1.dayOfWeek[0])
-            sendEvent(name: "tomorrow", value: obs1.dayOfWeek[1])
-            sendEvent(name: "dayAfterTomorrow", value: obs1.dayOfWeek[2])   
-			sendEvent(name: "fCstRainTomorrow", value: obs1.daypart[0].qpf[2])
-            sendEvent(name: "fCstRainDayAfterTomorrow", value: obs1.daypart[0].qpf[1])  
-            sendEvent(name: "forecastShort", value: obs1.narrative[0])	   
-			sendEvent(name: "forecastTomorrow", value: obs1.daypart[0].narrative[2])
-			sendEvent(name: "forecastDayAfterTomorrow", value: obs1.daypart[0].narrative[4]) 
-			sendEvent(name: "forecastHigh", value: obs1.temperatureMax[0])
-			sendEvent(name: "forecastLow", value: obs1.temperatureMin[0])
-			sendEvent(name: "moonPhase", value: obs1.moonPhase[0])
-            
-            if(txtEnable == true){log.info "Day or Night: " + obs1.daypart[0].dayOrNight} //daypartInitials
-            if(txtEnable == true){log.info "D/N Name : " + obs1.daypart[0].daypartName} //daypartNames
-            String DN
-            if (obs1.daypart[0].dayOrNight[0] == null)
-            {
-                DN = "N"
-            }
-            else
-            {
-                DN = "D"
-            }
-            if(txtEnable == true){log.info "Day or Night: " + DN}
-            sendEvent(name: "dayOrNight", value: DN)
-        	//state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
-        	//if(state.dayOrNight == null){	
-            if(device.currentValue('dayOrNight') == "N"){
-// Weather Nightime Data
-                sendEvent(name: "forecastTimeName", value: obs1.daypart[0].daypartName[1])
-                sendEvent(name: "forecastPhraseToday", value: obs1.daypart[0].wxPhraseLong[1])
-				sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[1])
-				sendEvent(name: "precipType", value: obs1.daypart[0].precipType[1])
-				sendEvent(name: "cloudCover", value: obs1.daypart[0].precipChance[1])        	
-				sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[1])
-				sendEvent(name: "uvIndex", value: obs1.daypart[0].uvIndex[1])
-				sendEvent(name: "thunderCategory", value: obs1.daypart[0].thunderCategory[1])
-				sendEvent(name: "thunderIndex", value: obs1.daypart[0].thunderCategory[1])				
-				sendEvent(name: "snowRange", value: obs1.daypart[0].snowRange[1])				
-				sendEvent(name: "qpfSnow", value: obs1.daypart[0].qpfSnow[1]) 
-				sendEvent(name: "fCstRainToday", value: obs1.daypart[0].qpf[1])
-				sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[1])
-				sendEvent(name: "weather", value: (obs1.daypart[0].narrative[1]))
-				sendEvent(name: "wind_dir", value: obs1.daypart[0].windDirectionCardinal[1])
-				sendEvent(name: "windPhrase", value: obs1.daypart[0].windPhrase[1])
-				sendEvent(name: "windPhraseForecast", value: obs1.daypart[0].windPhrase[1])			
-				sendEvent(name: "UVHarm", value: obs1.daypart[0].uvDescription[1])	     
-        	}
-// Weather Daytime Data
-        	else {
-                sendEvent(name: "forecastTimeName", value: obs1.daypart[0].daypartName[0])
-				sendEvent(name: "forecastPhraseToday", value: obs1.daypart[0].wxPhraseLong[0])
-				sendEvent(name: "precipChanceToday", value: obs1.daypart[0].precipChance[0])
-				sendEvent(name: "precipType", value: obs1.daypart[0].precipType[0])
-				sendEvent(name: "cloudCover", value: obs1.daypart[0].precipChance[0])         
-				sendEvent(name: "uvDescription", value: obs1.daypart[0].uvDescription[0])
-				sendEvent(name: "uvIndex", value: obs1.daypart[0].uvIndex[0])
-				sendEvent(name: "thunderCategory", value: obs1.daypart[0].thunderCategory[0])
-				sendEvent(name: "thunderIndex", value: obs1.daypart[0].thunderCategory[0])				
-				sendEvent(name: "snowRange", value: obs1.daypart[0].snowRange[0])
-				sendEvent(name: "qpfSnow", value: obs1.daypart[0].qpfSnow[0]) 
-				sendEvent(name: "fCstRainToday", value: obs1.daypart[0].qpf[0])
-				sendEvent(name: "forecastToday", value: obs1.daypart[0].narrative[0])
-				sendEvent(name: "weather", value: (obs1.daypart[0].narrative[0]))
-				sendEvent(name: "wind_dir", value: obs1.daypart[0].windDirectionCardinal[0])
-				sendEvent(name: "windPhrase", value: obs1.daypart[0].windPhrase[0])
-				sendEvent(name: "windPhraseForecast", value: obs1.daypart[0].windPhrase[0])			
-				sendEvent(name: "UVHarm", value: obs1.daypart[0].uvDescription[0])
-            }  
-               
-// Weather Warnings Data
-			//if(state.dayOrNight == null){	
-            if(device.currentValue('dayOrNight') == "N"){
-				
-                // state.weatherWarning = (obs1.daypart[0].qualifierPhrase[1])
-				String weatherWarning = (obs1.daypart[0].qualifierPhrase[1])
-                if(weatherWarning == null){sendEvent(name: "weatherWarning", value: "None")}
-				else {sendEvent(name: "weatherWarning", value: weatherWarning)}	             		
-				
-                //state.weatherWarningCode = (obs1.daypart[0].qualifierCode[1])
-				String weatherWarningCode = (obs1.daypart[0].qualifierCode[1])
-                if(weatherWarningCode == null){sendEvent(name: "weatherWarningCode", value: "None")}
-				else {sendEvent(name: "weatherWarningCode", value: weatherWarningCode)}
-            }            
-            else{	
-				
-                //state.weatherWarning = (obs1.daypart[0].qualifierPhrase[0])
-                String weatherWarning = (obs1.daypart[0].qualifierPhrase[0])
-				if(weatherWarning == null){sendEvent(name: "weatherWarning", value: "None")}
-				else {sendEvent(name: "weatherWarning", value: weatherWarning)}	             		
-				
-                //state.weatherWarningCode = (obs1.daypart[0].qualifierCode[0])
-                String weatherWarningCode = (obs1.daypart[0].qualifierCode[0])
-				if(weatherWarningCode == null){sendEvent(name: "weatherWarningCode", value: "None")}
-				else {sendEvent(name: "weatherWarningCode", value: weatherWarningCode)}         
-				}
-					
-			//state.weatherWarningTommorrow = (obs1.daypart[0].qualifierPhrase[2])
-            String weatherWarningTommorrow = (obs1.daypart[0].qualifierPhrase[2])
-			if(weatherWarningTommorrow == null){sendEvent(name: "weatherWarningTomorrow", value: "None")}
-			else {sendEvent(name: "weatherWarningTomorrow", value: weatherWarningTommorrow)}	              		
-			
-            //state.weatherWarningCodeTomorrow = (obs1.daypart[0].qualifierCode[2])
-            String weatherWarningCodeTomorrow = (obs1.daypart[0].qualifierCode[2])
-			if(weatherWarningCodeTomorrow == null){sendEvent(name: "weatherWarningCodeTomorrow", value: "None")}
-			else {sendEvent(name: "weatherWarningCodeTomorrow", value: weatherWarningCodeTomorrow)}
-				
-			//state.weatherWarningDATomorrow = (obs1.daypart[0].qualifierPhrase[4])
-            String weatherWarningDATomorrow = (obs1.daypart[0].qualifierPhrase[4])
-			if(weatherWarningDATomorrow == null){sendEvent(name: "weatherWarningDATomorrow", value: "None")}
-			else {sendEvent(name: "weatherWarningDATomorrow", value: weatherWarningDATomorrow)}	              		
-			
-            //state.weatherWarningCodeDATomorrow = (obs1.daypart[0].qualifierCode[4])
-            String weatherWarningCodeDATomorrow = (obs1.daypart[0].qualifierCode[4])
-			if(weatherWarningCodeDATomorrow == null){sendEvent(name: "weatherWarningCodeDATomorrow", value: "None")}
-			else {sendEvent(name: "weatherWarningCodeDATomorrow", value: weatherWarningCodeDATomorrow)}
-            
-// Weather Icons Logic
-			//state.dayOrNight = (obs1.daypart[0].dayOrNight[0])
-            iconURL1 = "https://github.com/dJOS1475/Hubitat_WU_Driver/raw/main/wuIcons/"
-
-            if(useIcons){
-			//if(state.dayOrNight == null){
-            if(device.currentValue('dayOrNight') == "N"){
-				//state.iconCode1 = (obs1.daypart[0].iconCode[1])
-				sendEvent(name: "forecastTodayIcon", value: "<img src='" + iconURL1 + (obs1.daypart[0].iconCode[1]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
-                //state.iconCode2 = (obs1.daypart[0].iconCode[2])
-				sendEvent(name: "forecastTomorrowIcon", value: "<img src='" + iconURL1 + (obs1.daypart[0].iconCode[2]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
-				//state.iconCode3 = (obs1.daypart[0].iconCode[4])		
-				sendEvent(name: "forecastDayAfterTomorrowIcon", value: "<img src='" + iconURL1 + (obs1.daypart[0].iconCode[4]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
-				}				
-			else{	
-				//state.iconCode1 = (obs1.daypart[0].iconCode[0])
-				sendEvent(name: "forecastTodayIcon", value: "<img src='" + iconURL1 + (obs1.daypart[0].iconCode[0]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
-				//state.iconCode2 = (obs1.daypart[0].iconCode[2])
-				sendEvent(name: "forecastTomorrowIcon", value: "<img src='" + iconURL1 + (obs1.daypart[0].iconCode[2]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
-				//state.iconCode3 = (obs1.daypart[0].iconCode[4])		
-				sendEvent(name: "forecastDayAfterTomorrowIcon", value: "<img src='" + iconURL1 + (obs1.daypart[0].iconCode[4]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
-				}
-            //iconURL1 = "https://github.com/dJOS1475/Hubitat_WU_Driver/raw/main/wuIcons/"
-            //state.icon1 = "<img src='" +iconURL1 +state.iconCode1 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
-			//state.icon2 = "<img src='" +iconURL1 +state.iconCode2 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
-			//state.icon3 = "<img src='" +iconURL1 +state.iconCode3 +".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>"
-			
-            //sendEvent(name: "forecastTodayIcon", value: state.icon1, isStateChange: state.force )
-			//sendEvent(name: "forecastTomorrowIcon", value: state.icon2, isStateChange: state.force )
-			//sendEvent(name: "forecastDayAfterTomorrowIcon", value: state.icon3, isStateChange: state.force )
-			} 
-        } 
-      else {
-        def res1 = resp1.getStatus()
-		log.warn "WU weather api did not return data from poll2 - $res1"
-	}  
+    if(txtEnable == true){log.info "7-Day Rain History: $rainhistory"}
+    if (rainhistory)
+    {
+        GetHistorical()
+        rainTile()
+    }
+    
+    if(weatherwarnings)
+    {
+        WeatherWarningTile()
+    }
 }
 
-def poll3(){
-    formatUnit()  
-    def params3 = [uri: "https://api.weather.com/v2/pws/dailysummary/7day?stationId=${pollLocation}&format=json&units=${device.currentValue('formatUnit')}&apiKey=${apiKey}"]
-    asynchttpGet("pollHandler3", params3)
+def locationCoOrds(){
+    
+    def polllatitude
+    def polllongitude
+    
+    if(gpsCoords){
+        polllatitude = latitudeCust
+        polllongitude = longitudeCust
+	}
+	else{    
+        polllatitude = location.getLatitude()
+        polllongitude = location.getLongitude()
+	}
+
+    updateTileAttr("latitude", polllatitude)
+    updateTileAttr("longitude", polllongitude)         
+    if(txtEnable == true){log.info "latitude: $polllatitude"}
+    if(txtEnable == true){log.info "longitude: $polllongitude"}
+}	
+
+def updateTileAttr(String sKey, sValue, String sUnit = ""){
+    sendEvent(name:sKey, value:sValue, unit:sUnit)
+    if(txtEnable == true){log.info "String: " + sKey + ": " + sValue + " : " + sUnit}
+    //log.info "String: " + sKey + ": " + sValue + " : " + sUnit
 }
 
-def pollHandler3(resp1, data) {
-	if(resp1.getStatus() == 200 || resp1.getStatus() == 207) {
-		obs2 = parseJson(resp1.data)
-        if(txtEnable == true){log.debug "Response poll3 = $obs2"}		// log the data returned by WU
+def updateTileAttr(String sKey, BigDecimal bdValue, String sUnit = ""){
+    sValue = String.valueOf(bdValue)
+    sendEvent(name:sKey, value:sValue, unit:sUnit)
+    if(txtEnable == true){log.info "BigDecimal: " + sKey + ": " + sValue + " : " + sUnit}
+    //log.info "BigDecimal: " + sKey + ": " + sValue + " : " + sUnit
+}
 
-        def rain7List
+def getObservations()
+{
+    //first, go get common oberservations and then return localized data here
+    Map localized = getObservationsData()
+    if(txtEnable == true){log.info "localized-Map: " + localized}
 
-        if(unitFormat == "Imperial")
+    updateTileAttr("precip_rate", localized.precipRate)         
+    updateTileAttr("precip_today", localized.precipTotal)
+    updateTileAttr("feelsLike", localized.windChill, device.currentValue('TempUnit'))
+    updateTileAttr("temperature", localized.temp, device.currentValue('TempUnit'))
+    updateTileAttr("wind", localized.windSpeed, device.currentValue('SpeedUnit'))       
+    updateTileAttr("wind_gust", localized.windGust)         
+    updateTileAttr("dewpoint", localized.dewpt, device.currentValue('TempUnit'))
+    updateTileAttr("pressure", localized.pressure)         
+    updateTileAttr("elevation", localized.elev)
+}
+
+Map getObservationsData()
+{
+    String wuAPIurl = "https://api.weather.com/v2/pws/observations/current?format=json&units=${device.currentValue('formatUnit')}&stationId=${pollLocation}&apiKey=${apiKey}"
+    if(txtEnable == true){log.debug("Getting WU observations from ${wuAPIurl}")}
+    Map ret = null
+    
+    try {
+        httpGet(wuAPIurl) { resp ->
+            if (resp?.isSuccess()) {
+                try {
+                    Map respJSON = resp.getData()
+                    if(txtEnable == true){log.info "Observations-Map: " + respJSON.observations[0]}
+                    
+                    // get top level oberservations
+                    if (respJSON.observations.solarRadiation[0] ? true : false) // true if not null or zero
+                    {
+                        if(txtEnable == true){log.debug "solarradiation: $respJSON.observations.solarRadiation"}
+                        updateTileAttr("solarradiation", respJSON.observations.solarRadiation[0])
+                    }
+                    else
+                    {
+                        updateTileAttr("solarradiation", "No Data")
+                        if(txtEnable == true){log.debug "solarradiation: No Data"}
+                    }
+                    updateTileAttr("stationID", respJSON.observations.stationID[0])
+                    updateTileAttr("stationType", respJSON.observations.softwareType[0])
+                    updateTileAttr("station_location", respJSON.observations.neighborhood[0])
+                    updateTileAttr("humidity", respJSON.observations.humidity[0])
+                    updateTileAttr("observation_time", respJSON.observations.obsTimeLocal[0])
+                    updateTileAttr("wind_degree", respJSON.observations.winddir[0])
+
+                    // now return map of localized data
+                    if(txtEnable == true){log.info "Resp.Format: $unitFormat"}
+
+                    if (device.currentValue('formatUnit') == 'e'){
+                        ret = respJSON.observations.imperial[0]
+                        updateTileAttr("TempUnit", ImperialTempUnit)
+                        updateTileAttr("SpeedUnit", ImperialSpeedUnit)
+                    }
+                    if (device.currentValue('formatUnit') == 'm'){
+                        ret = respJSON.observations.metric[0]    
+                        updateTileAttr("TempUnit", MetricTempUnit)
+                        updateTileAttr("SpeedUnit", MetricSpeedUnit)
+                    }
+                    if (device.currentValue('formatUnit') == 'h'){
+                        ret = respJSON.observations.uk_hybrid[0]  
+                        updateTileAttr("TempUnit", HybridTempUnit)
+                        updateTileAttr("SpeedUnit", HybridSpeedUnit)
+                    }
+                    if(txtEnable == true){log.info "Observations_Localized-Map: " + ret}
+
+                } catch (groovy.json.JsonException ex) {
+                    log.error("Could not get results from site: ${ex.getMessage()}")
+                }
+            } else {
+                log.error("Could not get results from site: ${body}")
+            }
+        }
+    } catch (java.net.UnknownHostException ex) {
+        log.error("Could not connect to the site: ${ex.getMessage()}")
+    }   
+    return ret
+}
+
+def GetForcasts()
+{
+    Map forcast = GetForcastsData()
+    if(txtEnable == true){log.info "forcast-Map: " + forcast}
+    
+   	updateTileAttr("temperatureMaxToday", forcast.calendarDayTemperatureMax[0])
+    updateTileAttr("temperatureMaxTomorrow", forcast.calendarDayTemperatureMax[1])
+    updateTileAttr("temperatureMaxDayAfterTomorrow", forcast.calendarDayTemperatureMax[2])
+    updateTileAttr( "temperatureMinToday", forcast.calendarDayTemperatureMin[0])
+    updateTileAttr("temperatureMinTomorrow", forcast.calendarDayTemperatureMin[1])
+    updateTileAttr("temperatureMinDayAfterTomorrow", forcast.calendarDayTemperatureMin[2]) 
+    updateTileAttr("forcastPhraseTomorrow", forcast.daypart[0].wxPhraseLong[2])
+    updateTileAttr("forcastPhraseDayAfterTomorrow", forcast.daypart[0].wxPhraseLong[4])     
+    updateTileAttr("precipChanceTomorrow", forcast.daypart[0].precipChance[2])
+    updateTileAttr("precipChanceDayAfterTomorrow", forcast.daypart[0].precipChance[4])           
+    updateTileAttr("sunsetTimeLocal", forcast.sunsetTimeLocal[0])
+    updateTileAttr("sunriseTimeLocal", forcast.sunriseTimeLocal[0])            
+    updateTileAttr("today", forcast.dayOfWeek[0])
+    updateTileAttr("tomorrow", forcast.dayOfWeek[1])
+    updateTileAttr("dayAfterTomorrow", forcast.dayOfWeek[2])   
+    updateTileAttr("fCstRainTomorrow", forcast.daypart[0].qpf[2])
+    updateTileAttr("fCstRainDayAfterTomorrow", forcast.daypart[0].qpf[1])  
+    updateTileAttr("forecastShort", forcast.narrative[0])	   
+	updateTileAttr("forecastTomorrow", forcast.daypart[0].narrative[2])
+	updateTileAttr("forecastDayAfterTomorrow", forcast.daypart[0].narrative[4]) 
+	updateTileAttr("forecastHigh", forcast.temperatureMax[0])
+	updateTileAttr("forecastLow", forcast.temperatureMin[0])
+	updateTileAttr("moonPhase", forcast.moonPhase[0])
+    
+    //need WU Day or Night setting so to retrieve correct values
+    String DN
+    if (forcast.daypart[0].dayOrNight[0] == null)
+    {
+        DN = "N"
+    }
+    else
+    {
+        DN = "D"
+    }
+   	updateTileAttr("dayOrNight", DN)
+    if(txtEnable == true){log.info "Day or Night: " + forcast.daypart[0].dayOrNight} //daypartInitials
+    if(txtEnable == true){log.info "D/N Name : " + forcast.daypart[0].daypartName} //daypartNames
+    if(txtEnable == true){log.info "Day or Night: " + DN}
+
+    // Weather Nightime Data
+    if(device.currentValue('dayOrNight') == "N"){
+        updateTileAttr("forecastTimeName", forcast.daypart[0].daypartName[1])
+        updateTileAttr("forcastPhraseToday", forcast.daypart[0].wxPhraseLong[1])
+        updateTileAttr("forcastPhraseTodayShort", forcast.daypart[0].wxPhraseShort[1])
+    	updateTileAttr("precipChanceToday", forcast.daypart[0].precipChance[1])
+		updateTileAttr("precipType", forcast.daypart[0].precipType[1])
+		updateTileAttr("cloudCover", forcast.daypart[0].precipChance[1])        	
+		updateTileAttr("uvDescription", forcast.daypart[0].uvDescription[1])
+		updateTileAttr("uvIndex", forcast.daypart[0].uvIndex[1])
+		updateTileAttr("thunderCategory", forcast.daypart[0].thunderCategory[1])
+		updateTileAttr("thunderIndex", forcast.daypart[0].thunderCategory[1])				
+		updateTileAttr("snowRange", forcast.daypart[0].snowRange[1])				
+		updateTileAttr("qpfSnow", forcast.daypart[0].qpfSnow[1]) 
+		updateTileAttr("fCstRainToday", forcast.daypart[0].qpf[1])
+		updateTileAttr("forecastToday", forcast.daypart[0].narrative[1])
+		updateTileAttr("weather", forcast.daypart[0].narrative[1])
+		updateTileAttr("wind_dir", forcast.daypart[0].windDirectionCardinal[1])
+		updateTileAttr("windPhrase", forcast.daypart[0].windPhrase[1])
+		updateTileAttr("windPhraseForecast", forcast.daypart[0].windPhrase[1])			
+		updateTileAttr("UVHarm", forcast.daypart[0].uvDescription[1])	     
+    }
+    else {
+        // Weather Daytime Data
+        updateTileAttr("forecastTimeName", forcast.daypart[0].daypartName[0])
+		updateTileAttr("forcastPhraseToday", forcast.daypart[0].wxPhraseLong[0])
+        updateTileAttr("forcastPhraseTodayShort", forcast.daypart[0].wxPhraseShort[0])
+		updateTileAttr("precipChanceToday", forcast.daypart[0].precipChance[0])
+		updateTileAttr("precipType", forcast.daypart[0].precipType[0])
+		updateTileAttr("cloudCover", forcast.daypart[0].precipChance[0])         
+		updateTileAttr("uvDescription", forcast.daypart[0].uvDescription[0])
+		updateTileAttr("uvIndex", forcast.daypart[0].uvIndex[0])
+		updateTileAttr("thunderCategory", forcast.daypart[0].thunderCategory[0])
+		updateTileAttr("thunderIndex", forcast.daypart[0].thunderCategory[0])				
+		updateTileAttr("snowRange", forcast.daypart[0].snowRange[0])
+		updateTileAttr("qpfSnow", forcast.daypart[0].qpfSnow[0]) 
+		updateTileAttr("fCstRainToday", forcast.daypart[0].qpf[0])
+		updateTileAttr("forecastToday", forcast.daypart[0].narrative[0])
+		updateTileAttr("weather", forcast.daypart[0].narrative[0])
+		updateTileAttr("wind_dir", forcast.daypart[0].windDirectionCardinal[0])
+		updateTileAttr("windPhrase", forcast.daypart[0].windPhrase[0])
+		updateTileAttr("windPhraseForecast", forcast.daypart[0].windPhrase[0])			
+		updateTileAttr("UVHarm", forcast.daypart[0].uvDescription[0])
+    }
+    if(weatherwarnings){
+        // Weather Warnings Data
+        if(device.currentValue('dayOrNight') == "N"){
+			String weatherWarning = (forcast.daypart[0].qualifierPhrase[1])
+            if(weatherWarning == null){updateTileAttr("weatherWarning", "None")}
+			else {updateTileAttr("weatherWarning", weatherWarning)}	             		
+				
+			String weatherWarningCode = (forcast.daypart[0].qualifierCode[1])
+            if(weatherWarningCode == null){updateTileAttr("weatherWarningCode", "None")}
+			else {updateTileAttr("weatherWarningCode", weatherWarningCode)}
+        }            
+        else{	
+            String weatherWarning = (forcast.daypart[0].qualifierPhrase[0])
+			if(weatherWarning == null){updateTileAttr("weatherWarning", "None")}
+			else {updateTileAttr("weatherWarning", weatherWarning)}	             		
+
+            String weatherWarningCode = (forcast.daypart[0].qualifierCode[0])
+			if(weatherWarningCode == null){updateTileAttr("weatherWarningCode", "None")}
+			else {updateTileAttr("weatherWarningCode", weatherWarningCode)}         
+		}
+            String weatherWarningTommorrow = (forcast.daypart[0].qualifierPhrase[2])
+			if(weatherWarningTommorrow == null){updateTileAttr("weatherWarningTomorrow", "None")}
+			else {updateTileAttr("weatherWarningTomorrow", weatherWarningTommorrow)}	              		
+			
+            String weatherWarningCodeTomorrow = (forcast.daypart[0].qualifierCode[2])
+			if(weatherWarningCodeTomorrow == null){updateTileAttr("weatherWarningCodeTomorrow", "None")}
+			else {updateTileAttr("weatherWarningCodeTomorrow", weatherWarningCodeTomorrow)}
+				
+            String weatherWarningDATomorrow = (forcast.daypart[0].qualifierPhrase[4])
+			if(weatherWarningDATomorrow == null){updateTileAttr("weatherWarningDATomorrow", "None")}
+			else {updateTileAttr("weatherWarningDATomorrow", weatherWarningDATomorrow)}	              		
+			
+            String weatherWarningCodeDATomorrow = (forcast.daypart[0].qualifierCode[4])
+			if(weatherWarningCodeDATomorrow == null){updateTileAttr("weatherWarningCodeDATomorrow", "None")}
+			else {updateTileAttr("weatherWarningCodeDATomorrow", weatherWarningCodeDATomorrow)}
+    }
+    // Weather Icons Logic
+    iconURL1 = "https://github.com/dJOS1475/Hubitat_WU_Driver/raw/main/wuIcons/"
+
+    if(useIcons){
+        if(device.currentValue('dayOrNight') == "N"){
+			updateTileAttr("forecastTodayIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[1]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
+			updateTileAttr("forecastTomorrowIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[2]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
+			updateTileAttr("forecastDayAfterTomorrowIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[4]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
+		}				
+		else{	
+            if(txtEnable == true){if((obs1.daypart[0].iconCode[0] = null) || (forcast.daypart[0].iconCode[0] = 'null')){log.warn "Null Icon - Missing value"}}
+   				updateTileAttr("forecastTodayIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[0]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
+				updateTileAttr("forecastTomorrowIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[2]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
+				updateTileAttr("forecastDayAfterTomorrowIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[4]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
+	    }
+	} 
+}
+
+Map GetForcastsData()
+{
+    String wuAPIurl = "https://api.weather.com/v3/wx/forecast/daily/5day?format=json&units=${device.currentValue('formatUnit')}&language=${device.currentValue('formatLanguage')}"
+    if (gpsCoords ? true : false) // true if not null or zero
+    {
+            wuAPIurl += "&geocode=${device.currentValue('latitude')},${device.currentValue('longitude')}&apiKey=${apiKey}"
+            if(txtEnable == true){log.info "Forcast for: Custom GPS Corrdinates"}
+    }
+    else
+    {
+        if (pollICAO ? true : false) // true if not null or zero
         {
-            rain7List = (obs2.summaries.imperial.precipTotal) as String // .toString()
-            if(txtEnable == true){log.info "7DayRain: $obs2.summaries.imperial.precipTotal[0]"}
+            wuAPIurl += "&icaoCode=${pollICAO}&apiKey=${apiKey}"
+            if(txtEnable == true){log.info "Forcast for: ICAO"}
         }
         else
-            if(unitFormat == "Metric")
-            {
-                rain7List = (obs2.summaries.metric.precipTotal) as String // .toString()
-                if(txtEnable == true){log.info "7DayRain: $obs2.summaries.metric.precipTotal[0]"}
-            }
-            else
-                if(unitFormat == "UK Hybrid")
-                {
-                    rain7List = (obs2.summaries.uk_hybrid.precipTotal) as String // .toString()
-                    if(txtEnable == true){log.info "7DayRain: $obs2.summaries.uk_hybrid.precipTotal[0]"}
-                }
-        
-        def day7List = []
-        day7List = (obs2.summaries.obsTimeLocal)
-        if(txtEnable == true){log.info "day7List: $day7List"}
-        
-        int daysCount = day7List.size()
-        sendEvent(name: "rainHistoryDays", value: daysCount)
-        if(txtEnable == true){log.info "Count: $daysCount"}
-        
-        if(txtEnable == true){log.info "Orig: $rain7List"}
-        rain7List = rain7List.replace("[","")
-        rain7List = rain7List.replace("]","")
-        if(txtEnable == true){log.info "Repl: $rain7List"}
-        
-        try{
-            def BigDecimal bd6
-                if (daysCount == 7)
-            {
-                (day6, day5, day4, day3, day2, day1, day0) = rain7List.tokenize( ',' )
-                if(txtEnable == true){log.info "Day 6: $day6, Day 5: $day5, Day 4: $day4, Day 3: $day3, Day 2: $day2, Day 1: $day1, Day 0: $day0"}
-    
-                if (day6.trim() != 'null' && day6.trim() != '')
-                {
-                    if (day6 != null) {bd6 = day6.toBigDecimal()} else {bd6 = 0}
-                }
-                else
-                {
-                    bd6 = 0.00
-                }
-            }
-            if (daysCount == 6)
-            {
-                (day5, day4, day3, day2, day1, day0) = rain7List.tokenize( ',' )
-                if(txtEnable == true){log.info "Day 5: $day5, Day 4: $day4, Day 3: $day3, Day 2: $day2, Day 1: $day1, Day 0: $day0"}
-    
-            bd6 = 0.00
-            }
-        
-            def BigDecimal bd5
-            if (day5.trim() != 'null' && day5.trim() != '')
-            {
-                if (day5 != null) {bd5 = day5.toBigDecimal()} else {bd5 = 0}
-            }
-            else
-            {
-                bd5 = 0.00
-            }
-    
-            def BigDecimal bd4
-            if (day4.trim() != 'null' && day4.trim() != '')
-            {
-                if (day4 != null) {bd4 = day4.toBigDecimal()} else {bd4 = 0}
-            }
-            else
-            {
-                bd4 = 0.00
-            }
-    
-            def BigDecimal bd3
-            if (day3.trim() != 'null' && day3.trim() != '')
-            {
-                if (day3 != null) {bd3 = day3.toBigDecimal()} else {bd3 = 0}
-            }
-            else
-            {
-            bd3 = 0.00
-            }
-    
-            def BigDecimal bd2
-            if (day2.trim() != 'null' && day2.trim() != '')
-            {
-                if (day2 != null) {bd2 = day2.toBigDecimal()} else {bd2 = 0}
-            }
-            else
-            {
-                bd2 = 0.00
-            }
-    
-            def BigDecimal bd1
-            if (day1.trim() != 'null' && day1.trim() != '')
-            {
-                if (day1 != null) {bd1 = day1.toBigDecimal()} else {bd1 = 0}
-            }
-            else
-            {
-                bd1 = 0.00
-            }
-    
-            def BigDecimal bd0
-            if (day0.trim() != 'null' && day0.trim() != '')
-            {
-                if (day0 != null) {bd0 = day0.toBigDecimal()} else {bd0 = 0}
-            }
-            else
-            {
-                bd0 = 0.00
-            }
-
-            if(txtEnable == true){log.info "$bd6, $bd5, $bd4, $bd3, $bd2, $bd1, $bd0"}
-            BigDecimal bdAll7 = bd6 + bd5 + bd4 + bd3 + bd2 + bd1 + bd0        
-            String bdString7 = String.valueOf(bdAll7)
-            if(txtEnable == true){log.info "7Days: " + bdString7}
-            sendEvent(name: "precip_Last7Days", value: bdString7)        
-            
-            BigDecimal bdAll5 = bd5 + bd4 + bd3 + bd2 + bd1 + bd0       
-            String bdString5 = String.valueOf(bdAll5)
-            if(txtEnable == true){log.info "5Days: " + bdString5}
-            sendEvent(name: "precip_Last5Days", value: bdString5)
-            
-            BigDecimal bdAll3 = bd3 + bd2 + bd1 + bd0        
-            String bdString3 = String.valueOf(bdAll3)
-            if(txtEnable == true){log.info "3Days: " + bdString3}
-            sendEvent(name: "precip_Last3Days", value: bdString3)
-            
-            BigDecimal bdYesterday = bd1
-            String bdStringYesterday = String.valueOf(bdYesterday)
-            if(txtEnable == true){log.info "Yesterday: " + bdStringYesterday}
-            sendEvent(name: "precip_Yesterday", value: bdStringYesterday)
-        }
-        catch(Exception e)
         {
-            log.warn "WU did not return all rain values on this attempt. Missing at least 1 day's rain. Will retry on next interval."
-            log.warn "error: $e"
-        }   
-    } 
-    else {
-        def res1 = resp1.getStatus()
-		log.warn "WU weather api did not return data from poll3 - $res1"
-	}  
+            wuAPIurl += "&geocode=${device.currentValue('latitude')},${device.currentValue('longitude')}&apiKey=${apiKey}"
+            if(txtEnable == true){log.info "Forcast for: Corrdinates"}
+        }
+    }
+    
+    if(txtEnable == true){log.debug("Getting WU forecast from ${wuAPIurl}")}
+    Map ret = null
+
+    try {
+        httpGet(wuAPIurl) { resp ->
+            if (resp?.isSuccess()) {
+                try {
+                    Map respJSON = resp.getData()
+                    ret = respJSON
+                    if(txtEnable == true){log.info "Forcasts-Map: " + ret}
+                } catch (groovy.json.JsonException ex) {
+                    log.error("Could not get results from site: ${ex.getMessage()}")
+                }
+            } else {
+                log.error("Could not get results from site: ${body}")
+            }
+        }
+    } catch (java.net.UnknownHostException ex) {
+        log.error("Could not connect to the site: ${ex.getMessage()}")
+    }
+    return ret
+}
+               
+def GetHistorical(){
+    ValueFormating()  
+    String wuAPIurl = "https://api.weather.com/v2/pws/dailysummary/7day?format=json&units=${device.currentValue('formatUnit')}&stationId=${pollLocation}&apiKey=${apiKey}"
+    if(txtEnable == true){log.debug("Getting WU historical from ${wuAPIurl}")}
+    Map ret = null
+    
+    try {
+        httpGet(wuAPIurl) { resp ->
+            if (resp?.isSuccess()) {
+                try {
+                    Map respJSON = resp.getData()
+                    if(txtEnable == true){log.info "Historical-Map: " + respJSON.summaries}
+                    
+                    def rain7List
+                    if(unitFormat == "Imperial")
+                    {
+                        rain7List = (respJSON.summaries.imperial.precipTotal) as String // .toString()
+                        if(txtEnable == true){log.info "7DayRain: $respJSON.summaries.imperial.precipTotal[0]"}
+                    }
+                    else
+                        if(unitFormat == "Metric")
+                        {
+                            rain7List = (respJSON.summaries.metric.precipTotal) as String // .toString()
+                            if(txtEnable == true){log.info "7DayRain: $respJSON.summaries.metric.precipTotal[0]"}
+                        }
+                        else
+                            if(unitFormat == "UK Hybrid")
+                            {
+                                rain7List = (respJSON.summaries.uk_hybrid.precipTotal) as String // .toString()
+                                if(txtEnable == true){log.info "7DayRain: $respJSON.summaries.uk_hybrid.precipTotal[0]"}
+                    }
+
+                    def day7List = []
+                    day7List = (respJSON.summaries.obsTimeLocal)
+                    if(txtEnable == true){log.info "day7List: $day7List"}
+                    
+                    CalculatePrecipDays(day7List, rain7List)   
+
+                } catch (groovy.json.JsonException ex) {
+                    log.error("Could not get historic results from site: ${ex.getMessage()}")
+                }
+            } else {
+                log.error("Could not get historic results from site: ${body}")
+            }
+        }
+    } catch (java.net.UnknownHostException ex) {
+        log.error("Could not connect to the site: ${ex.getMessage()}")
+    }   
 }
 
-// HTML Tiles Logic
-def updateTile1() {
+def CalculatePrecipDays(day7List, rain7List) {
+    if(txtEnable == true){log.info "day7List: $day7List"}
+    
+    int daysCount = day7List.size()
+    updateTileAttr("rainHistoryDays", daysCount)
+    if(txtEnable == true){log.info "Count: $daysCount"}
+    
+    if(txtEnable == true){log.info "Orig: $rain7List"}
+    rain7List = rain7List.replace("[","")
+    rain7List = rain7List.replace("]","")
+    if(txtEnable == true){log.info "Repl: $rain7List"}
+    
+    try{
+        def BigDecimal bd6
+        
+        if (daysCount == 7)
+        {
+            (day6, day5, day4, day3, day2, day1, day0) = rain7List.tokenize( ',' )
+            if(txtEnable == true){log.info "Day 6: $day6, Day 5: $day5, Day 4: $day4, Day 3: $day3, Day 2: $day2, Day 1: $day1, Day 0: $day0"}
+
+            bd6 = GetDailyRain(day6)
+        }
+        
+        if (daysCount == 6)
+        {
+            (day5, day4, day3, day2, day1, day0) = rain7List.tokenize( ',' )
+            if(txtEnable == true){log.info "Day 5: $day5, Day 4: $day4, Day 3: $day3, Day 2: $day2, Day 1: $day1, Day 0: $day0"}
+
+        bd6 = 0.00
+        }
+    
+        def BigDecimal bd5
+        bd5 = GetDailyRain(day5)
+    
+        def BigDecimal bd4
+        bd4 = GetDailyRain(day4)
+    
+        def BigDecimal bd3
+        bd3 = GetDailyRain(day3)
+    
+        def BigDecimal bd2
+        bd2 = GetDailyRain(day2)
+    
+        def BigDecimal bd1
+        bd1 = GetDailyRain(day1)
+    
+        def BigDecimal bd0
+        bd0 = GetDailyRain(day0)
+
+        if(txtEnable == true){log.info "$bd6, $bd5, $bd4, $bd3, $bd2, $bd1, $bd0"}
+        BigDecimal bdAll7 = bd6 + bd5 + bd4 + bd3 + bd2 + bd1 + bd0        
+        String bdString7 = String.valueOf(bdAll7)
+        if(txtEnable == true){log.info "7Days: " + bdString7}
+        updateTileAttr("precip_Last7Days", bdString7)        
+            
+        BigDecimal bdAll5 = bd5 + bd4 + bd3 + bd2 + bd1 + bd0       
+        String bdString5 = String.valueOf(bdAll5)
+        if(txtEnable == true){log.info "5Days: " + bdString5}
+        updateTileAttr("precip_Last5Days", bdString5)
+            
+        BigDecimal bdAll3 = bd3 + bd2 + bd1 + bd0        
+        String bdString3 = String.valueOf(bdAll3)
+        if(txtEnable == true){log.info "3Days: " + bdString3}
+        updateTileAttr("precip_Last3Days", bdString3)
+            
+        BigDecimal bdYesterday = bd1
+        String bdStringYesterday = String.valueOf(bdYesterday)
+        if(txtEnable == true){log.info "Yesterday: " + bdStringYesterday}
+        updateTileAttr("precip_Yesterday", bdStringYesterday)
+    }
+    catch(Exception e)
+    {
+        log.warn "WU did not return all rain values on this attempt. Missing at least 1 day's rain. Will retry on next interval."
+        log.warn "error: $e"
+    }   
+}
+
+BigDecimal GetDailyRain(sDay)
+{
+    BigDecimal bdRain = 0.00
+    if (sDay.trim() != 'null' && sDay.trim() != '')
+    {
+        if (sDay != null) {bdRain = sDay.toBigDecimal()} else {bdRain = 0}
+    }
+    return bdRain
+}
+
+// HTML Weather Tiles Logic
+def TodayWeatherTile() {
 	if(txtEnable == true){log.debug "updateTile1 called"}		// log the data returned by WU//	
 	htmlToday ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
 	htmlToday +="<div style='line-height:50%;'><br></div>"
 	htmlToday +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('today')}<br></div>"
 	htmlToday +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('forecastToday')}<br></div>"
-	sendEvent(name: "htmlToday", value: "$htmlToday")
+	updateTileAttr("htmlToday", "$htmlToday")
 	if(txtEnable == true){log.debug "htmlToday contains ${htmlToday}"}		// log the data returned by WU//	
 	if(txtEnable == true){log.debug "${htmlToday.length()}"}		// log the data returned by WU//	
 	}
 	
-def updateTile2() {
+def TomorrowWeatherTile() {
 	if(txtEnable == true){log.debug "updateTile2 called"}		// log the data returned by WU//	
 	htmlTomorrow ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
 	htmlTomorrow +="<div style='line-height:50%;'><br></div>"
 	htmlTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('tomorrow')}<br></div>"
 	htmlTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('forecastTomorrow')}<br></div>"
-	sendEvent(name: "htmlTomorrow", value: "$htmlTomorrow")
+	updateTileAttr("htmlTomorrow", "$htmlTomorrow")
 	if(txtEnable == true){log.debug "htmlTomorrow contains ${htmlTomorrow}"}		// log the data returned by WU//	
 	if(txtEnable == true){log.debug "${htmlTomorrow.length()}"}		// log the data returned by WU//	
 	}
 	
-def updateTile3() {
+def DayAfterTomorrowWeatherTile() {
 	if(txtEnable == true){log.debug "updateTile3 called"}		// log the data returned by WU//		
 	htmlDayAfterTomorrow ="<div style='line-height:1.0; font-size:1em;'><br>Weather for ${device.currentValue('station_location')}<br></div>"
 	htmlDayAfterTomorrow +="<div style='line-height:50%;'><br></div>"
 	htmlDayAfterTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>Forecast for ${device.currentValue('dayAfterTomorrow')}<br></div>"
 	htmlDayAfterTomorrow +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('forecastDayAfterTomorrow')}<br></div>"
-	sendEvent(name: "htmlDayAfterTomorrow", value: "$htmlDayAfterTomorrow")
+	updateTileAttr("htmlDayAfterTomorrow", "$htmlDayAfterTomorrow")
 	if(txtEnable == true){log.debug "htmlDayAfterTomorrow contains ${htmlDayAfterTomorrow}"}		// log the data returned by WU//	
 	if(txtEnable == true){log.debug "${htmlDayAfterTomorrow.length()}"}		// log the data returned by WU//
 	}
 
-def updateTile4() {
+def WeatherWarningTile() {
 	if(txtEnable == true){log.debug "updateTile4 called"}		// log the data returned by WU//		
 	htmlWarnings ="<div style='line-height:1.0; font-size:1em;'><br>Weather Warnings for ${device.currentValue('station_location')}<br></div>"
 	htmlWarnings +="<div style='line-height:50%;'><br></div>"
 	htmlWarnings +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('today')}: ${device.currentValue('weatherWarning')}<br></div>"
 	htmlWarnings +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('tomorrow')}: ${device.currentValue('weatherWarningTomorrow')}<br></div>"
 	htmlWarnings +="<div style='line-height:1.0; font-size:0.75em; text-align: left;'><br>${device.currentValue('dayAfterTomorrow')}: ${device.currentValue('weatherWarningDATomorrow')}<br></div>"
-	sendEvent(name: "htmlWarnings", value: "$htmlWarnings")
+	updateTileAttr("htmlWarnings", "$htmlWarnings")
 	if(txtEnable == true){log.debug "htmlWarnings contains ${htmlWarnings}"}		// log the data returned by WU//	
 	if(txtEnable == true){log.debug "${htmlWarnings.length()}"}		// log the data returned by WU//
 	}
@@ -852,181 +803,203 @@ def updateTile4() {
 // HTML 3 Day Forecast Tile Logic
 def wu3dayfcst() {
     if(txtEnable == true){log.info "3-Day Forecast: $threedayforecast"}
-
     String sTD='<td>'
     String sTR='<tr><td>'
    	String my3day
     
-    if(txtEnable == true){log.info "3-Day Forecast: $threedayforecast"}
-    if(threedayforecast)
-    {
-        String iconSunrise = '<img src=https://tinyurl.com/icnqz/wsr.png>'
-        String iconSunset = '<img src=https://tinyurl.com/icnqz/wss.png>'
-        String degreeSign
-        String sunriseLocal
-        String strSunrise
-        String sunsetLocal
-        String strSunset
-        String strRainToday = ''
-        String lastPoll
-        String s1stHeader
-        String s2ndHeader
-        String s3rdHeader
+    String iconSunrise = '<img src=https://tinyurl.com/icnqz/wsr.png>'
+    String iconSunset = '<img src=https://tinyurl.com/icnqz/wss.png>'
+    String degreeSign = "°" + device.currentValue('TempUnit')
+    String sunriseLocal
+    String strSunrise
+    String sunsetLocal
+    String strSunset
+    String strRainToday = ''
+    String lastPoll
+    String lastObsDate
+    String lastObsTime
+    String s1stHeader
+    String s2ndHeader
+    String s3rdHeader
+    String sStationName
         
-        if(unitFormat == "Imperial")
+    int Tstart = "${device.currentValue('sunriseTimeLocal')}".indexOf('T')
+    int Tstop1 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstart)
+    int Tstop2 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstop1+1)
+    sunriseLocal = "${device.currentValue('sunriseTimeLocal')}".substring(Tstart+1, Tstop2)
+    strSunrise = "${convert24to12(sunriseLocal)}" 
+    if(txtEnable == true){log.info "Sunrise = $strSunrise"}
+    
+    Tstart = "${device.currentValue('sunsetTimeLocal')}".indexOf('T')
+    Tstop1 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstart)
+    Tstop2 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstop1+1)
+    sunsetLocal = "${device.currentValue('sunsetTimeLocal')}".substring(Tstart+1, Tstop2)
+    strSunset = "${convert24to12(sunsetLocal)}"
+    if(txtEnable == true){log.info "Sunset = $strSunset"}
+    
+    String todayAlert = ''
+    if ("${device.currentValue('weatherWarningCode')}" != "None")
+    {
+        todayAlert = " @"
+    }
+    String tomorrowAlert = ''
+    if ("${device.currentValue('weatherWarningCodeTomorrow')}" != "None")
+    {
+        tomorrowAlert = " @"
+    }
+    String DAtomorrowAlert = ''
+    if ("${device.currentValue('weatherWarningCodeDATomorrow')}" != "None")
+    {
+        DAtomorrowAlert = " @"
+    }
+       
+    strRainToday = 'Rain '
+    BigDecimal rainToday
+    
+    if ("${device.currentValue('precip_today')}" ? true : false)
+    {
+        rainToday = "${device.currentValue('precip_today')}".toBigDecimal()
+        if(rainToday > 0.00)
         {
-            degreeSign = "°F"
-        }
-        else
-            if(unitFormat == "Metric")
-            {
-                degreeSign = "°C"
-            }
-            else
-                if(unitFormat == "UK Hybrid")
-                {
-                    degreeSign = "°C"
-                }
-
-        //if(txtEnable == true){log.info "state.unit = $state.unit"}
-        if(txtEnable == true){log.info "Unit Format = $unitFormat"}
-        if(txtEnable == true){log.info "DegreeSign = $degreeSign"}
-
-        int Tstart = "${device.currentValue('sunriseTimeLocal')}".indexOf('T')
-        int Tstop1 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstart)
-        int Tstop2 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstop1+1)
-        sunriseLocal = "${device.currentValue('sunriseTimeLocal')}".substring(Tstart+1, Tstop2)
-        strSunrise = "${convert24to12(sunriseLocal)}" 
-        if(txtEnable == true){log.info "Sunrise = $strSunrise"}
-    
-        Tstart = "${device.currentValue('sunsetTimeLocal')}".indexOf('T')
-        Tstop1 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstart)
-        Tstop2 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstop1+1)
-        sunsetLocal = "${device.currentValue('sunsetTimeLocal')}".substring(Tstart+1, Tstop2)
-        strSunset = "${convert24to12(sunsetLocal)}"
-        if(txtEnable == true){log.info "Sunset = $strSunset"}
-    
-        //("${device.currentValue('precip_today')}" != '')
-        BigDecimal rainToday
-        if ("${device.currentValue('precip_today')}")
-        {
-            rainToday = "${device.currentValue('precip_today')}".toBigDecimal()
-            if(rainToday > 0.00)
-            {
-                strRainToday = ' / ' + rainToday.toString()
-            }
-        }
-
-        if(txtEnable == true){log.info "rainToday = $rainToday"}
-    
-        lastPoll = convert24to12("${device.currentValue('lastPollTime')}")
-    
-    	my3day = '<table >'
-        my3day += '<TR>' 
-    	my3day += '<th>' + "<B> ${device.currentValue('station_location')}</B>" + '</th>'
-    	my3day += '<th style="min-width:5%"></th>'
-    	my3day += '<th>' + "${device.currentValue("forecastTimeName")}" + '</th>'
-    	my3day += '<th style="min-width:5%"></th>'
-    	my3day += '<th>' + "${device.currentValue('tomorrow')}" + '</th>'
-    	my3day += '<th style="min-width:5%"></th>'
-    	my3day += '<th>' + "${device.currentValue('dayAfterTomorrow')}" + '</th>'
-        my3day += sTR
-        my3day += "Now " + "${device.currentValue('temperature')} " + degreeSign + "<br>Feels ${device.currentValue('feelsLike')} "+ degreeSign + "<br>Humidity ${device.currentValue('humidity')}" + '%'
-    	my3day += sTD
-    	my3day += sTD + "${device.currentValue('forecastTodayIcon')}" 
-    	my3day += sTD
-    	my3day += sTD + "${device.currentValue('forecastTomorrowIcon')}" 
-	    my3day += sTD
-    	my3day += sTD + "${device.currentValue('forecastDayAfterTomorrowIcon')}"
-    	my3day += sTR
-    	my3day += ""
-	    my3day += sTD
-    	my3day += sTD + "${device.currentValue('forecastPhraseToday')}"
-    	my3day += sTD
-    	my3day += sTD + "${device.currentValue('forecastPhraseTomorrow')}"
-    	my3day += sTD
-    	my3day += sTD + "${device.currentValue('forecastPhraseDayAfterTomorrow')}"
-    	my3day += sTR
-    	my3day += 'High/Low'
-    	my3day += sTD
-    	my3day += sTD + "${device.currentValue('temperatureMaxToday')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinToday')}" + degreeSign
-    	my3day += sTD
-    	my3day += sTD + "${device.currentValue('temperatureMaxTomorrow')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinTomorrow')}" + degreeSign
-	    my3day += sTD
-    	my3day += sTD + "${device.currentValue('temperatureMaxDayAfterTomorrow')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinDayAfterTomorrow')}" + degreeSign 
-    	my3day += sTR
-    	my3day += 'Chance Precip' 
-    	my3day += sTD
-    	my3day += sTD + "${device.currentValue('precipChanceToday')}" + "%" + strRainToday 
-    	my3day += sTD
-    	my3day += sTD + "${device.currentValue('precipChanceTomorrow')}" + "%" 
-    	my3day += sTD
-    	my3day += sTD + "${device.currentValue('precipChanceDayAfterTomorrow')}" + "%" 
-        my3day += '<tr> <td colspan="7">'  //blank line
-
-        if (rainhistory) 
-        {
-            int totalRainDays = device.currentValue('rainHistoryDays')
-            if(totalRainDays == 7)
-            {
-                s1stHeader = "Last 3 Days:"
-                s2ndHeader = "Last 5 Days:"
-                s3rdHeader = "Last 7 Days:"
-            }
-            else
-            {
-                s1stHeader = "Last 2 Days:"
-                s2ndHeader = "Last 4 Days:"
-                s3rdHeader = "Last 6 Days:"
-            }
-            
-            if(txtEnable == true){log.info "Rain History Days: $raindaysdisplay"}
-            switch(raindaysdisplay) {        
-                case "No selection": 
-                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
-                    break; 
-                case "None": 
-                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
-                    break; 
-                 case "Yesterday": 
-                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + 'Yesterday:' + " ${device.currentValue('precip_Yesterday')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
-                    break; 
-                 case "Last 2/3-Days": 
-                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + s1stHeader + " ${device.currentValue('precip_Last3Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
-                    break; 
-                 case "Last 4/5-Days": 
-                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + s2ndHeader + " ${device.currentValue('precip_Last5Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
-                    break; 
-                 case "Last 6/7-Days": 
-                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + s3rdHeader + " ${device.currentValue('precip_Last7Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
-                    break; 
-                 default: 
-                    my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
-                    break; 
-            }
+            strRainToday += rainToday.toString()
         }
         else
         {
-            my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @' + lastPoll
+            strRainToday += '0.0' 
         }
-    	my3day += '</table>'
-
-        if(txtEnable == true){log.info 'html3dayfcst length: (' + my3day.length() + ')'}
-
-        if(my3day.length() > 1024) {
-		    log.error('Too much data to display.</br></br>Current threedayfcstTile length (' + my3day.length() + ') exceeds maximum tile length by ' + (my3day.length() - 1024).toString()  + ' characters.')
-            my3day = '<table>' + sTR + 'Error! Tile greater than 1024 characters. ' + sTR + my3day.length() + ' exceeds maximum tile length by ' + (my3day.length() - 1024).toString() + ' characters.' + sTR + 'Replacing 3 day with todays forecast<br>' + "${device.currentValue('htmlToday')}" + '</table>'
-    	}
+    }
+    
+    if(txtEnable == true){log.info "rainToday = $rainToday"}
+    
+    lastPoll = convert24to12("${device.currentValue('lastPollTime')}")
+    
+    lastObsDate = "${device.currentValue('observation_time')}"
+    lastObsTime = lastObsDate.substring(10,16)
+    lastObsTime = convert24to12(lastObsTime)
+        
+    sl = device.currentValue('station_location')
+    sn = device.currentValue('stationID')
+    
+    sLeftMarker = ''
+    sRightMarker = ''
+    sForcastLocation = ''
+    if (gpsCoords ? true : false) // true if not null or zero
+    {
+        sForcastLocation = 'Custom GPS'
+        sLeftMarker = "<"
+        sRightMarker = ">"
+        if(txtEnable == true){log.info "Forcast for: Custom GPS: ${latitudeCust} ** ${longitudeCust}"}
     }
     else
     {
-        my3day = '<table>' + sTR + 'Not Configured!' + '</table>'
+        if (pollICAO ? true : false) // true if not null or zero
+        {
+            sForcastLocation = pollICAO
+            sLeftMarker = "<"
+            sRightMarker = ">"
+            if(txtEnable == true){log.info "Forcast for: ICAO: ${pollICAO}"}
+        }
     }
-	sendEvent(name: 'html3dayfcst', value: my3day.take(1024))
+    my3day = '<table>'  // style="font-size:90%"
+    my3day += '<tr>' 
+    my3day += '<td>' + "$sl<br>$sn" + '</td>'  // style="border: 1px solid;"
+    my3day += '<td style="min-width:5%"></td>'
+    my3day += '<td>' + sLeftMarker + '<br>' + "${device.currentValue("forecastTimeName")}" + todayAlert + '</td>'
+    my3day += '<td style="min-width:5%"></td>'
+    my3day += '<td>' + sForcastLocation + '<br>' + "${device.currentValue('tomorrow')}" + tomorrowAlert + '</td>'
+    my3day += '<td style="min-width:5%"></td>'
+    my3day += '<td>' + sRightMarker + '<br>' + "${device.currentValue('dayAfterTomorrow')}" + DAtomorrowAlert + '</td>'
+    my3day += sTR
+    my3day += "Now " + "${device.currentValue('temperature')} " + degreeSign + "<br>Humidity ${device.currentValue('humidity')}" + '%<br>' + strRainToday + '<br>'
+    my3day += sTD
+    my3day += sTD + "${device.currentValue('forecastTodayIcon')}" 
+    my3day += sTD
+    my3day += sTD + "${device.currentValue('forecastTomorrowIcon')}" 
+	my3day += sTD
+    my3day += sTD + "${device.currentValue('forecastDayAfterTomorrowIcon')}"
+    my3day += sTR
+	my3day += sTD
+    my3day += sTD + "${device.currentValue('forcastPhraseToday')}"
+    my3day += sTD
+    my3day += sTD + "${device.currentValue('forcastPhraseTomorrow')}"
+    my3day += sTD
+    my3day += sTD + "${device.currentValue('forcastPhraseDayAfterTomorrow')}"
+    my3day += sTR
+    my3day += 'High/Low'
+    my3day += sTD
+    my3day += sTD + "${device.currentValue('temperatureMaxToday')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinToday')}" + degreeSign
+    my3day += sTD
+    my3day += sTD + "${device.currentValue('temperatureMaxTomorrow')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinTomorrow')}" + degreeSign
+	my3day += sTD
+    my3day += sTD + "${device.currentValue('temperatureMaxDayAfterTomorrow')}" + degreeSign + ' ' + "${device.currentValue('temperatureMinDayAfterTomorrow')}" + degreeSign 
+    my3day += sTR
+    my3day += 'Chance Precip' 
+    my3day += sTD
+    my3day += sTD + "${device.currentValue('precipChanceToday')}" + "%"
+    my3day += sTD
+    my3day += sTD + "${device.currentValue('precipChanceTomorrow')}" + "%" 
+    my3day += sTD
+    my3day += sTD + "${device.currentValue('precipChanceDayAfterTomorrow')}" + "%" 
+    my3day += '<tr><td colspan="7">'  //blank line
 
+    if (rainhistory) 
+    {
+        int totalRainDays = device.currentValue('rainHistoryDays')
+        if(totalRainDays == 7)
+        {
+            s1stHeader = "Last 3 Days Rain:"
+            s2ndHeader = "Last 5 Days Rain:"
+            s3rdHeader = "Last 7 Days Rain:"
+        }
+        else
+        {
+            s1stHeader = "Last 2 Days Rain:"
+            s2ndHeader = "Last 4 Days Rain:"
+            s3rdHeader = "Last 6 Days Rain:"
+        }
+            
+        if(txtEnable == true){log.info "Rain History Days: $raindaysdisplay"}
+        switch(raindaysdisplay) {        
+            case "No selection": 
+                my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @ ' + lastObsTime
+                break; 
+            case "None": 
+                my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @ ' + lastObsTime
+                break; 
+             case "Yesterday": 
+                my3day += '<tr style="font-size:75%"> <td colspan="7">' + 'Yesterdays Rain:' + " ${device.currentValue('precip_Yesterday')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @ ' + lastObsTime
+                break; 
+             case "Last 2/3-Days": 
+                my3day += '<tr style="font-size:75%"> <td colspan="7">' + s1stHeader + " ${device.currentValue('precip_Last3Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @ ' + lastObsTime
+                break; 
+             case "Last 4/5-Days": 
+                my3day += '<tr style="font-size:75%"> <td colspan="7">' + s2ndHeader + " ${device.currentValue('precip_Last5Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @ ' + lastObsTime
+                break; 
+             case "Last 6/7-Days": 
+                my3day += '<tr style="font-size:75%"> <td colspan="7">' + s3rdHeader + " ${device.currentValue('precip_Last7Days')} " + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @ ' + lastObsTime
+                break; 
+             default: 
+                my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @ ' + lastObsTime
+                break; 
+        }
+    }
+    else
+    {
+        my3day += '<tr style="font-size:75%"> <td colspan="7">' + iconSunrise + strSunrise + ' ' + iconSunset + strSunset + ' @ ' + lastObsTime
+    }
+    my3day += '</table>'
+
+    if(txtEnable == true){log.info 'html3dayfcst length: (' + my3day.length() + ')'}
+    //log.info 'html3dayfcst length: (' + my3day.length() + ')'
+
+    if(my3day.length() > 1024) {
+	    log.error('Too much data to display.</br></br>Current threedayfcstTile length (' + my3day.length() + ') exceeds maximum tile length by ' + (my3day.length() - 1024).toString()  + ' characters.')
+        my3day = '<table>' + sTR + 'Error! Tile greater than 1024 characters. ' + sTR + my3day.length() + ' exceeds maximum tile length by ' + (my3day.length() - 1024).toString() + ' characters.' + sTR + 'Replacing 3 day with todays forecast<br>' + "${device.currentValue('htmlToday')}" + '</table>'
+   	}
+    updateTileAttr('html3dayfcst', my3day.take(1024))
 }
 
-// HTML Tiles Logic
+// HTML Rain Tiles Logic
 def rainTile() {
     
    	String htmlRainTile
@@ -1048,24 +1021,16 @@ def rainTile() {
         s3rdHeader = "Last 6 Days:"
     }
 
-    if(txtEnable == true){log.debug "rainTile called"}
     htmlRainTile ="<table>"
-    htmlRainTile +='<tr style="font-size:80%"><td>' +  "${device.currentValue('station_location')}<br>$totalRainDays Day Rain History"
-    if(rainhistory)
-    {
-        htmlRainTile +='<tr style="font-size:85%"><td>Yesterday:' + " ${device.currentValue('precip_Yesterday')}"
-        htmlRainTile +='<tr style="font-size:85%"><td>' + s1stHeader + " ${device.currentValue('precip_Last3Days')}"
-        htmlRainTile +='<tr style="font-size:85%"><td>' + s2ndHeader + " ${device.currentValue('precip_Last5Days')}"
-        htmlRainTile +='<tr style="font-size:85%"><td>' + s3rdHeader + " ${device.currentValue('precip_Last7Days')}"
-        htmlRainTile +='<tr style="font-size:85%"><td> &nbsp;&nbsp;&nbsp;'  //blank line
-    	htmlRainTile +='</table>'
-    }
-    else
-    {
-        htmlRainTile +='<tr style="font-size:95%"><td>Not Configured!' + '</table>'
-    }
+    htmlRainTile +='<tr style="font-size:80%"><td>' + "${device.currentValue('station_location')}<br>$totalRainDays Day Rain History"
+    htmlRainTile +='<tr style="font-size:85%"><td>Yesterday:' + " ${device.currentValue('precip_Yesterday')}"
+    htmlRainTile +='<tr style="font-size:85%"><td>' + s1stHeader + " ${device.currentValue('precip_Last3Days')}"
+    htmlRainTile +='<tr style="font-size:85%"><td>' + s2ndHeader + " ${device.currentValue('precip_Last5Days')}"
+    htmlRainTile +='<tr style="font-size:85%"><td>' + s3rdHeader + " ${device.currentValue('precip_Last7Days')}"
+    htmlRainTile +='<tr style="font-size:85%"><td> &nbsp;&nbsp;&nbsp;'  //blank line
+ 	htmlRainTile +='</table>'
 
-    sendEvent(name: "htmlRainTile", value: "$htmlRainTile")
+    updateTileAttr("htmlRainTile", "$htmlRainTile")
   	if(txtEnable == true){log.debug "htmlRainTile contains ${htmlRainTile}"}		        // log the data returned by WU//	
     if(txtEnable == true){log.debug "htmlRainTile length: ${htmlRainTile.length()}"}		// log the data returned by WU//
 
