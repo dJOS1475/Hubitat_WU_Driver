@@ -18,6 +18,7 @@
 *
 *  Last Update 06/07/2023
 *
+*	v7.00.2 - change several attributes from string to number 
 *	v7.00.1 - Speed Improvements. Improve 3 Day Forecast Tile and removed FeelsLike value since it didn't seem to be correct.
 *           - Improve Coding Logic. Added ICAO Airport Code for Forecasts.
 *           - Display an @ sign in forcast day if a WU warning exist for the day.  Since WU doesn't provide illuminance, stop using solar radiation as it's value
@@ -87,10 +88,10 @@ metadata {
         attribute "rainHistoryDays", "number"
  	    attribute "forecastTimeName", "string"
         attribute "htmlRainTile", "string"
-        attribute "precip_Yesterday", "string"
-        attribute "precip_Last3Days", "string"
- 	    attribute "precip_Last5Days", "string"
- 	    attribute "precip_Last7Days", "string"
+        attribute "precip_Yesterday", "number"
+        attribute "precip_Last3Days", "number"
+ 	    attribute "precip_Last5Days", "number"
+ 	    attribute "precip_Last7Days", "number"
  	    attribute "temperatureMaxToday", "string"
     	attribute "temperatureMaxTomorrow", "string"
 	    attribute "temperatureMaxDayAfterTomorrow", "string"
@@ -100,9 +101,9 @@ metadata {
 	    attribute "forcastPhraseToday", "string"
 	    attribute "forcastPhraseTomorrow", "string"
 	    attribute "forcastPhraseDayAfterTomorrow", "string"
-	    attribute "precipChanceToday", "string"
- 	    attribute "precipChanceTomorrow", "string"
-	    attribute "precipChanceDayAfterTomorrow", "string"
+	    attribute "precipChanceToday", "number"
+ 	    attribute "precipChanceTomorrow", "number"
+	    attribute "precipChanceDayAfterTomorrow", "number"
 	    attribute "sunriseTimeLocal", "String"
 	    attribute "sunsetTimeLocal", "String"
 	    attribute "html3dayfcst", "string"
