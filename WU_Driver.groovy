@@ -67,7 +67,7 @@
 
 import groovy.transform.Field
 def version() {
-    return "7.00.1"
+    return "7.00.2"
 }
 
 metadata {
