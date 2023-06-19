@@ -390,7 +390,7 @@ Map getObservationsData()
                     }
                     else
                     {
-                        updateTileAttr("solarradiation", "No Dataish")
+                        updateTileAttr("solarradiation", "No Data")
                         if(txtEnable == true){log.debug "solarradiation: No Data"}
                     }
                     updateTileAttr("stationID", respJSON.observations.stationID[0])
