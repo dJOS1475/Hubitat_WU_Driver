@@ -1,10 +1,10 @@
 {
   "packageName": "Enhanced Weather Underground Driver",
   "author": "Derek Osborn",
-  "version": "7.00.2",
+  "version": "7.00.3",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2023-06-15",
-  "releaseNotes": "v7.00.2 - change several attributes from string to number",
+  "releaseNotes": "v7.00.3 - fix odd SolarRadiation value",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
