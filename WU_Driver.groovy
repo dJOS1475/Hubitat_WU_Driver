@@ -18,6 +18,7 @@
 *
 *  Last Update 06/07/2023
 *
+*	v7.00.3 - fix odd SolarRadiation value
 *	v7.00.2 - change several attributes from string to number 
 *	v7.00.1 - Speed Improvements. Improve 3 Day Forecast Tile and removed FeelsLike value since it didn't seem to be correct.
 *           - Improve Coding Logic. Added ICAO Airport Code for Forecasts.
@@ -67,7 +68,7 @@
 
 import groovy.transform.Field
 def version() {
-    return "7.00.2"
+    return "7.00.3"
 }
 
 metadata {
@@ -379,16 +380,17 @@ Map getObservationsData()
                 try {
                     Map respJSON = resp.getData()
                     if(txtEnable == true){log.info "Observations-Map: " + respJSON.observations[0]}
-                    
+
                     // get top level oberservations
-                    if (respJSON.observations.solarRadiation[0] ? true : false) // true if not null or zero
+                    def solarRadiation = respJSON.observations.solarRadiation[0]
+                    if (solarRadiation ? true : false) // true if not null or zero
                     {
                         if(txtEnable == true){log.debug "solarradiation: $respJSON.observations.solarRadiation"}
                         updateTileAttr("solarradiation", respJSON.observations.solarRadiation[0])
                     }
                     else
                     {
-                        updateTileAttr("solarradiation", "No Data")
+                        updateTileAttr("solarradiation", "No Dataish")
                         if(txtEnable == true){log.debug "solarradiation: No Data"}
                     }
                     updateTileAttr("stationID", respJSON.observations.stationID[0])
