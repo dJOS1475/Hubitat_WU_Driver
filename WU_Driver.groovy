@@ -16,9 +16,11 @@
 *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
 *  for the specific language governing permissions and limitations under the License.
 *
-*  Last Update 10/08/2023
+*  Last Update 06/07/2023
 *
-*	v7.00.3 - added Spanish Language support
+*	v7.00.4 - added Spanish Language support
+*	v7.00.3 - fix odd SolarRadiation value
+*	v7.00.2 - change several attributes from string to number 
 *	v7.00.1 - Speed Improvements. Improve 3 Day Forecast Tile and removed FeelsLike value since it didn't seem to be correct.
 *           - Improve Coding Logic. Added ICAO Airport Code for Forecasts.
 *           - Display an @ sign in forcast day if a WU warning exist for the day.  Since WU doesn't provide illuminance, stop using solar radiation as it's value
@@ -67,11 +69,11 @@
 
 import groovy.transform.Field
 def version() {
-    return "7.00.3"
+    return "7.00.4"
 }
 
 metadata {
-    definition (name: "Wunderground Driver - Test", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
+    definition (name: "Wunderground Driver", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
         capability "Actuator"
         capability "Sensor"
         capability "Temperature Measurement"
@@ -88,10 +90,10 @@ metadata {
         attribute "rainHistoryDays", "number"
  	    attribute "forecastTimeName", "string"
         attribute "htmlRainTile", "string"
-        attribute "precip_Yesterday", "string"
-        attribute "precip_Last3Days", "string"
- 	    attribute "precip_Last5Days", "string"
- 	    attribute "precip_Last7Days", "string"
+        attribute "precip_Yesterday", "number"
+        attribute "precip_Last3Days", "number"
+ 	    attribute "precip_Last5Days", "number"
+ 	    attribute "precip_Last7Days", "number"
  	    attribute "temperatureMaxToday", "string"
     	attribute "temperatureMaxTomorrow", "string"
 	    attribute "temperatureMaxDayAfterTomorrow", "string"
@@ -101,9 +103,9 @@ metadata {
 	    attribute "forcastPhraseToday", "string"
 	    attribute "forcastPhraseTomorrow", "string"
 	    attribute "forcastPhraseDayAfterTomorrow", "string"
-	    attribute "precipChanceToday", "string"
- 	    attribute "precipChanceTomorrow", "string"
-	    attribute "precipChanceDayAfterTomorrow", "string"
+	    attribute "precipChanceToday", "number"
+ 	    attribute "precipChanceTomorrow", "number"
+	    attribute "precipChanceDayAfterTomorrow", "number"
 	    attribute "sunriseTimeLocal", "String"
 	    attribute "sunsetTimeLocal", "String"
 	    attribute "html3dayfcst", "string"
@@ -269,7 +271,7 @@ def ValueFormating(){
 	if(language == "GB"){
         updateTileAttr("formatLanguage", "en-GB")         
 	}
-	if(language == "ES"){
+    	if(language == "ES"){
         updateTileAttr("formatLanguage", "es")         
 	}
     if(txtEnable == true){log.info "formatUnit = ${device.currentValue('formatUnit')}"}
@@ -382,9 +384,10 @@ Map getObservationsData()
                 try {
                     Map respJSON = resp.getData()
                     if(txtEnable == true){log.info "Observations-Map: " + respJSON.observations[0]}
-                    
+
                     // get top level oberservations
-                    if (respJSON.observations.solarRadiation[0] ? true : false) // true if not null or zero
+                    def solarRadiation = respJSON.observations.solarRadiation[0]
+                    if (solarRadiation ? true : false) // true if not null or zero
                     {
                         if(txtEnable == true){log.debug "solarradiation: $respJSON.observations.solarRadiation"}
                         updateTileAttr("solarradiation", respJSON.observations.solarRadiation[0])
