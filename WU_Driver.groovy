@@ -16,8 +16,9 @@
 *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
 *  for the specific language governing permissions and limitations under the License.
 *
-*  Last Update 06/07/2023
+*  Last Update 13/09/2023
 *
+*	v7.00.5 - changed some attributes from string to number to enable use in RM eg min/max temps
 *	v7.00.4 - added Spanish Language support
 *	v7.00.3 - fix odd SolarRadiation value
 *	v7.00.2 - change several attributes from string to number 
@@ -69,7 +70,7 @@
 
 import groovy.transform.Field
 def version() {
-    return "7.00.4"
+    return "7.00.5"
 }
 
 metadata {
@@ -94,12 +95,12 @@ metadata {
         attribute "precip_Last3Days", "number"
  	    attribute "precip_Last5Days", "number"
  	    attribute "precip_Last7Days", "number"
- 	    attribute "temperatureMaxToday", "string"
-    	attribute "temperatureMaxTomorrow", "string"
-	    attribute "temperatureMaxDayAfterTomorrow", "string"
-	    attribute "temperatureMinToday", "string"
-	    attribute "temperatureMinTomorrow", "string"
-	    attribute "temperatureMinDayAfterTomorrow", "string"
+ 	    attribute "temperatureMaxToday", "number"
+    	attribute "temperatureMaxTomorrow", "number"
+	    attribute "temperatureMaxDayAfterTomorrow", "number"
+	    attribute "temperatureMinToday", "number"
+	    attribute "temperatureMinTomorrow", "number"
+	    attribute "temperatureMinDayAfterTomorrow", "number"
 	    attribute "forcastPhraseToday", "string"
 	    attribute "forcastPhraseTomorrow", "string"
 	    attribute "forcastPhraseDayAfterTomorrow", "string"
