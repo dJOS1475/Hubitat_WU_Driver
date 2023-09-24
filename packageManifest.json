@@ -4,7 +4,7 @@
   "version": "7.01.0",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2023-09-24",
-  "releaseNotes": "v7.01.0 - replaced int with java.lang.Integer to improve compatibility",
+  "releaseNotes": "v7.1.0 - replaced int with java.lang.Integer to improve compatibility",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
