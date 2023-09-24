@@ -1,10 +1,10 @@
 {
   "packageName": "Enhanced Weather Underground Driver",
   "author": "Derek Osborn",
-  "version": "7.00.5",
+  "version": "7.01.0",
   "minimumHEVersion": "2.0.0",
-  "dateReleased": "2023-09-13",
-  "releaseNotes": "v7.00.5 - changed some attributes from string to number to enable use in RM eg min/max temps",
+  "dateReleased": "2023-09-24",
+  "releaseNotes": "v7.01.0 - replaced "int" with "java.lang.Integer" to improve compatibility",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
