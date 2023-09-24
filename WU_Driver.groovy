@@ -18,7 +18,7 @@
 *
 *  Last Update 13/09/2023
 *
-*	v7.01.0 - replaced "int" with "java.lang.Integer" to improve compatibility
+*	v7.1.0 - replaced "int" with "java.lang.Integer" to improve compatibility
 *	v7.00.5 - changed some attributes from string to number to enable use in RM eg min/max temps
 *	v7.00.4 - added Spanish Language support
 *	v7.00.3 - fix odd SolarRadiation value
@@ -71,7 +71,7 @@
 
 import groovy.transform.Field
 def version() {
-    return "7.01.0"
+    return "7.1.0"
 }
 
 metadata {
