@@ -18,6 +18,7 @@
 *
 *  Last Update 13/09/2023
 *
+*	v7.01.0 - replaced "int" with "java.lang.Integer" to improve compatibility
 *	v7.00.5 - changed some attributes from string to number to enable use in RM eg min/max temps
 *	v7.00.4 - added Spanish Language support
 *	v7.00.3 - fix odd SolarRadiation value
@@ -70,7 +71,7 @@
 
 import groovy.transform.Field
 def version() {
-    return "7.00.5"
+    return "7.01.0"
 }
 
 metadata {
@@ -678,7 +679,7 @@ def GetHistorical(){
 def CalculatePrecipDays(day7List, rain7List) {
     if(txtEnable == true){log.info "day7List: $day7List"}
     
-    int daysCount = day7List.size()
+    java.lang.Integer daysCount = day7List.size()
     updateTileAttr("rainHistoryDays", daysCount)
     if(txtEnable == true){log.info "Count: $daysCount"}
     
@@ -831,9 +832,9 @@ def wu3dayfcst() {
     String s3rdHeader
     String sStationName
         
-    int Tstart = "${device.currentValue('sunriseTimeLocal')}".indexOf('T')
-    int Tstop1 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstart)
-    int Tstop2 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstop1+1)
+    java.lang.Integer Tstart = "${device.currentValue('sunriseTimeLocal')}".indexOf('T')
+    java.lang.Integer Tstop1 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstart)
+    java.lang.Integer Tstop2 = "${device.currentValue('sunriseTimeLocal')}".indexOf(':', Tstop1+1)
     sunriseLocal = "${device.currentValue('sunriseTimeLocal')}".substring(Tstart+1, Tstop2)
     strSunrise = "${convert24to12(sunriseLocal)}" 
     if(txtEnable == true){log.info "Sunrise = $strSunrise"}
@@ -952,7 +953,7 @@ def wu3dayfcst() {
 
     if (rainhistory) 
     {
-        int totalRainDays = device.currentValue('rainHistoryDays')
+        java.lang.Integer totalRainDays = device.currentValue('rainHistoryDays')
         if(totalRainDays == 7)
         {
             s1stHeader = "Last 3 Days Rain:"
@@ -1015,7 +1016,7 @@ def rainTile() {
     String s2ndHeader
     String s3rdHeader
     
-    int totalRainDays = device.currentValue('rainHistoryDays')
+    java.lang.Integer totalRainDays = device.currentValue('rainHistoryDays')
     if(totalRainDays == 7)
     {
         s1stHeader = "Last 3 Days:"
@@ -1055,8 +1056,8 @@ String convert24to12(String input )
         throw ("")  // Add your throw code
                     // This does not support time string with seconds
 
-    int h = temp[0] as int  // if h or m is not a number then exception
-    int m = temp[1] as int  // java.lang.NumberFormatException will be raised
+    java.lang.Integer h = temp[0] as int  // if h or m is not a number then exception
+    java.lang.Integer m = temp[1] as int  // java.lang.NumberFormatException will be raised
                             // that can be cached or just terminate the program
     String dn
 
