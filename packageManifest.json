@@ -1,7 +1,7 @@
 {
   "packageName": "Enhanced Weather Underground Driver",
   "author": "Derek Osborn",
-  "version": "7.01.0",
+  "version": "7.1.0",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2023-09-24",
   "releaseNotes": "v7.1.0 - replaced int with java.lang.Integer to improve compatibility",
