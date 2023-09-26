@@ -18,6 +18,7 @@
 *
 *  Last Update 13/09/2023
 *
+*	v7.1.1 - modifed Icon url lookup
 *	v7.1.0 - replaced "int" with "java.lang.Integer" to improve compatibility
 *	v7.00.5 - changed some attributes from string to number to enable use in RM eg min/max temps
 *	v7.00.4 - added Spanish Language support
@@ -71,7 +72,7 @@
 
 import groovy.transform.Field
 def version() {
-    return "7.1.0"
+    return "7.1.1"
 }
 
 metadata {
@@ -564,7 +565,7 @@ def GetForcasts()
 			else {updateTileAttr("weatherWarningCodeDATomorrow", weatherWarningCodeDATomorrow)}
     }
     // Weather Icons Logic
-    iconURL1 = "https://github.com/dJOS1475/Hubitat_WU_Driver/raw/main/wuIcons/"
+    iconURL1 = "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/wuIcons/"
 
     if(useIcons){
         if(device.currentValue('dayOrNight') == "N"){
