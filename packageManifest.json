@@ -4,7 +4,7 @@
   "version": "7.1.1",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2023-09-24",
-  "releaseNotes": "7.1.1 - modifed Icon lookup url",
+  "releaseNotes": "v7.1.2 - Removed Station ID from 3 Day Forecast to reduce Hubitats too many characters limitation",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
