@@ -18,7 +18,8 @@
 *
 *  Last Update 13/09/2023
 *
-*	7.1.1 - modifed Icon lookup url
+*	v7.1.2 - Removed Station ID from 3 Day Forecast to reduce Hubitats too many characters limitation
+*	v7.1.1 - modifed Icon lookup url
 *	v7.1.0 - replaced "int" with "java.lang.Integer" to improve compatibility
 *	v7.00.5 - changed some attributes from string to number to enable use in RM eg min/max temps
 *	v7.00.4 - added Spanish Language support
@@ -888,7 +889,7 @@ def wu3dayfcst() {
     lastObsTime = convert24to12(lastObsTime)
         
     sl = device.currentValue('station_location')
-    sn = device.currentValue('stationID')
+    // sn = device.currentValue('stationID')
     
     sLeftMarker = ''
     sRightMarker = ''
@@ -912,7 +913,7 @@ def wu3dayfcst() {
     }
     my3day = '<table>'  // style="font-size:90%"
     my3day += '<tr>' 
-    my3day += '<td>' + "$sl<br>$sn" + '</td>'  // style="border: 1px solid;"
+    my3day += '<td>' + "$sl" + '</td>'  // style="border: 1px solid;"
     my3day += '<td style="min-width:5%"></td>'
     my3day += '<td>' + sLeftMarker + '<br>' + "${device.currentValue("forecastTimeName")}" + todayAlert + '</td>'
     my3day += '<td style="min-width:5%"></td>'
