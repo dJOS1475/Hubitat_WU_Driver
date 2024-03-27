@@ -18,6 +18,7 @@
 *
 *  Last Update 13/09/2023
 *
+*	v7.1.3 - Removed Illuminance capability as it was unused
 *	v7.1.2 - Removed Station ID from 3 Day Forecast to reduce Hubitats too many characters limitation
 *	v7.1.1 - modifed Icon lookup url
 *	v7.1.0 - replaced "int" with "java.lang.Integer" to improve compatibility
@@ -73,7 +74,7 @@
 
 import groovy.transform.Field
 def version() {
-    return "7.1.2"
+    return "7.1.3"
 }
 
 metadata {
@@ -81,7 +82,6 @@ metadata {
         capability "Actuator"
         capability "Sensor"
         capability "Temperature Measurement"
-        capability "Illuminance Measurement"
         capability "Relative Humidity Measurement"
         
         command "poll", [[name:"Start a Manual Poll of Weather Underground Data"]]
