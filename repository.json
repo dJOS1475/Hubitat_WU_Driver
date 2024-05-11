@@ -18,6 +18,14 @@
 			"tags": ["Weather",
 				"Cloud"]
 		}
+		{
+			"name": "Amber Electric Integration",
+			"category": "Integrations",
+			"location": "https://raw.githubusercontent.com/dJOS1475/Amber-Electric---Hubitat-Driver/main/packageManifest.json",
+			"description": "Hubitat Driver for Aussie Amber Electric customers",
+			"tags": ["Energy Monitoring",
+				"Cloud"]
+		}
 	]
 	
 }
