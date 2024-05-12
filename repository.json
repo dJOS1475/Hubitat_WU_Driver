@@ -17,7 +17,7 @@
 			"description": "Netatmo (Connect) - Weather Station Application and Drivers. Includes some minor enhancements to Dashboard tile views.",
 			"tags": ["Weather",
 				"Cloud"]
-		}
+		},
 		{
 			"name": "Amber Electric Integration for Hubitat",
 			"category": "Integrations",
