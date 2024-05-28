@@ -25,6 +25,13 @@
 			"description": "Hubitat Driver for Aussie Amber Electric customers",
 			"tags": ["Energy Monitoring",
 				"Cloud"]
+		},
+		{
+			"name": "Fronius Solar Inverter Driver for Hubitat",
+			"category": "Integrations",
+			"location": "https://raw.githubusercontent.com/dJOS1475/Fronius_Inverter_Driver_Hubitat/main/packageManifest.json",
+			"description": "Fronius Solar Inverter Driver for Hubitat",
+			"tags": ["Energy Monitoring"]
 		}
 	]
 	
