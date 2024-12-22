@@ -16,8 +16,9 @@
 *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
 *  for the specific language governing permissions and limitations under the License.
 *
-*  Last Update 13/09/2023
+*  Last Update 12/10/2024
 *
+*	v7.1.4 - Added Cloud Coverage Forecast of 6 days of AM and PM, and bug fix when in Debug Mode
 *	v7.1.3 - Removed Illuminance capability as it was unused
 *	v7.1.2 - Removed Station ID from 3 Day Forecast to reduce Hubitats too many characters limitation
 *	v7.1.1 - modifed Icon lookup url
@@ -74,7 +75,7 @@
 
 import groovy.transform.Field
 def version() {
-    return "7.1.3"
+    return "7.1.4"
 }
 
 metadata {
@@ -87,6 +88,24 @@ metadata {
         command "poll", [[name:"Start a Manual Poll of Weather Underground Data"]]
  	    command "clearState", [[name:"Use Only 1 time to Clear State Variables no Longer Used"]]
         
+        attribute "cloud0day", "string"
+        attribute "cloud0AMCoverage", "number"
+        attribute "cloud0PMCoverage", "number"
+        attribute "cloud1day", "string"
+        attribute "cloud1AMCoverage", "number"
+        attribute "cloud1PMCoverage", "number"
+        attribute "cloud2day", "string"
+        attribute "cloud2AMCoverage", "number"
+        attribute "cloud2PMCoverage", "number"
+        attribute "cloud3day", "string"
+        attribute "cloud3AMCoverage", "number"
+        attribute "cloud3PMCoverage", "number"
+        attribute "cloud4day", "string"
+        attribute "cloud4AMCoverage", "number"
+        attribute "cloud4PMCoverage", "number"
+        attribute "cloud5day", "string"
+        attribute "cloud5AMCoverage", "number"
+        attribute "cloud5PMCoverage", "number"
         attribute "forcastPhraseTodayShort", "string"
         attribute "dayOrNight", "string"
         attribute "formatLanguage", "string"
@@ -470,6 +489,16 @@ def GetForcasts()
 	updateTileAttr("forecastLow", forcast.temperatureMin[0])
 	updateTileAttr("moonPhase", forcast.moonPhase[0])
     
+    def cloud6List
+    cloud6List = forcast.daypart[0].cloudCover
+    if(txtEnable == true){log.info "cloud6List: $cloud6List"}
+    
+    def day6List
+    day6List = forcast.dayOfWeek
+    if(txtEnable == true){log.info "day6List: $day6List"}
+                   
+    CloudCoverDays(day6List, cloud6List)   
+        
     //need WU Day or Night setting so to retrieve correct values
     String DN
     if (forcast.daypart[0].dayOrNight[0] == null)
@@ -492,7 +521,7 @@ def GetForcasts()
         updateTileAttr("forcastPhraseTodayShort", forcast.daypart[0].wxPhraseShort[1])
     	updateTileAttr("precipChanceToday", forcast.daypart[0].precipChance[1])
 		updateTileAttr("precipType", forcast.daypart[0].precipType[1])
-		updateTileAttr("cloudCover", forcast.daypart[0].precipChance[1])        	
+		updateTileAttr("cloudCover", forcast.daypart[0].cloudCover[1])        	
 		updateTileAttr("uvDescription", forcast.daypart[0].uvDescription[1])
 		updateTileAttr("uvIndex", forcast.daypart[0].uvIndex[1])
 		updateTileAttr("thunderCategory", forcast.daypart[0].thunderCategory[1])
@@ -514,7 +543,7 @@ def GetForcasts()
         updateTileAttr("forcastPhraseTodayShort", forcast.daypart[0].wxPhraseShort[0])
 		updateTileAttr("precipChanceToday", forcast.daypart[0].precipChance[0])
 		updateTileAttr("precipType", forcast.daypart[0].precipType[0])
-		updateTileAttr("cloudCover", forcast.daypart[0].precipChance[0])         
+		updateTileAttr("cloudCover", forcast.daypart[0].cloudCover[0])         
 		updateTileAttr("uvDescription", forcast.daypart[0].uvDescription[0])
 		updateTileAttr("uvIndex", forcast.daypart[0].uvIndex[0])
 		updateTileAttr("thunderCategory", forcast.daypart[0].thunderCategory[0])
@@ -575,7 +604,7 @@ def GetForcasts()
 			updateTileAttr("forecastDayAfterTomorrowIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[4]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
 		}				
 		else{	
-            if(txtEnable == true){if((obs1.daypart[0].iconCode[0] = null) || (forcast.daypart[0].iconCode[0] = 'null')){log.warn "Null Icon - Missing value"}}
+            if(txtEnable == true){if(forcast.daypart[0].iconCode[0] == 'null'){log.warn "Null Icon - Missing value"}}
    				updateTileAttr("forecastTodayIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[0]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
 				updateTileAttr("forecastTomorrowIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[2]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
 				updateTileAttr("forecastDayAfterTomorrowIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[4]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
@@ -753,6 +782,40 @@ def CalculatePrecipDays(day7List, rain7List) {
         log.warn "WU did not return all rain values on this attempt. Missing at least 1 day's rain. Will retry on next interval."
         log.warn "error: $e"
     }   
+}
+
+def CloudCoverDays(day6List, cloud6List) {
+    if(txtEnable == true){log.info "day6List: $day6List"}
+    if(txtEnable == true){log.info "cloud6List: $cloud6List"}
+    
+    def x = 0
+    def z = 0    
+    if(cloud6List[0] == null)
+    {
+        x = 1
+    }
+    
+    day6List.each { day ->
+        if(x == 1)
+        {
+            updateTileAttr("cloud${z}day", day)
+            if(txtEnable == true){log.info "cloud${z}day = " + day}
+            updateTileAttr("cloud${z}AMCoverage", " ")
+            if(txtEnable == true){log.info "cloud${z}AMCoverage = " + " "}
+       	    updateTileAttr("cloud${z}PMCoverage", cloud6List[x])
+            if(txtEnable == true){log.info "cloud${z}PMCoverage = " + cloud6List[x]}
+            x += 1
+        } else {
+            updateTileAttr("cloud${z}day", day)
+            if(txtEnable == true){log.info "cloud${z}day = " + day}
+       	    updateTileAttr("cloud${z}AMCoverage", cloud6List[x])
+            if(txtEnable == true){log.info "cloud${z}AMCoverage = " + cloud6List[x]}
+            updateTileAttr("cloud${z}PMCoverage", cloud6List[x+1])
+            if(txtEnable == true){log.info "cloud${z}PMCoverage = " + cloud6List[x+1]}
+            x += 2
+        }
+        z +=1
+    }
 }
 
 BigDecimal GetDailyRain(sDay)
