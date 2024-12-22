@@ -16,9 +16,9 @@
 *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
 *  for the specific language governing permissions and limitations under the License.
 *
-*  Last Update 12/22/2024
+*  Last Update 12/10/2024
 *
-*	v7.1.4 - Added Cloud Coverage from Forecast
+*	v7.1.4 - Added Cloud Coverage Forecast of 6 days of AM and PM, and bug fix when in Debug Mode
 *	v7.1.3 - Removed Illuminance capability as it was unused
 *	v7.1.2 - Removed Station ID from 3 Day Forecast to reduce Hubitats too many characters limitation
 *	v7.1.1 - modifed Icon lookup url
@@ -490,15 +490,15 @@ def GetForcasts()
 	updateTileAttr("moonPhase", forcast.moonPhase[0])
     
     def cloud6List
-    cloud6List = forecast.daypart[0].cloudCover
+    cloud6List = forcast.daypart[0].cloudCover
     if(txtEnable == true){log.info "cloud6List: $cloud6List"}
     
     def day6List
-    day6List = forecast.dayOfWeek
+    day6List = forcast.dayOfWeek
     if(txtEnable == true){log.info "day6List: $day6List"}
                    
-    CloudCoverDays(day6List, cloud6List)       
-    
+    CloudCoverDays(day6List, cloud6List)   
+        
     //need WU Day or Night setting so to retrieve correct values
     String DN
     if (forcast.daypart[0].dayOrNight[0] == null)
@@ -521,7 +521,7 @@ def GetForcasts()
         updateTileAttr("forcastPhraseTodayShort", forcast.daypart[0].wxPhraseShort[1])
     	updateTileAttr("precipChanceToday", forcast.daypart[0].precipChance[1])
 		updateTileAttr("precipType", forcast.daypart[0].precipType[1])
-		updateTileAttr("cloudCover", forecast.daypart[0].cloudCover[1])        	
+		updateTileAttr("cloudCover", forcast.daypart[0].cloudCover[1])        	
 		updateTileAttr("uvDescription", forcast.daypart[0].uvDescription[1])
 		updateTileAttr("uvIndex", forcast.daypart[0].uvIndex[1])
 		updateTileAttr("thunderCategory", forcast.daypart[0].thunderCategory[1])
@@ -543,7 +543,7 @@ def GetForcasts()
         updateTileAttr("forcastPhraseTodayShort", forcast.daypart[0].wxPhraseShort[0])
 		updateTileAttr("precipChanceToday", forcast.daypart[0].precipChance[0])
 		updateTileAttr("precipType", forcast.daypart[0].precipType[0])
-		updateTileAttr("cloudCover", forecast.daypart[0].cloudCover[0])        
+		updateTileAttr("cloudCover", forcast.daypart[0].cloudCover[0])         
 		updateTileAttr("uvDescription", forcast.daypart[0].uvDescription[0])
 		updateTileAttr("uvIndex", forcast.daypart[0].uvIndex[0])
 		updateTileAttr("thunderCategory", forcast.daypart[0].thunderCategory[0])
@@ -604,7 +604,7 @@ def GetForcasts()
 			updateTileAttr("forecastDayAfterTomorrowIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[4]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
 		}				
 		else{	
-            if(txtEnable == true){if((obs1.daypart[0].iconCode[0] = null) || (forcast.daypart[0].iconCode[0] = 'null')){log.warn "Null Icon - Missing value"}}
+            if(txtEnable == true){if(forcast.daypart[0].iconCode[0] == 'null'){log.warn "Null Icon - Missing value"}}
    				updateTileAttr("forecastTodayIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[0]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
 				updateTileAttr("forecastTomorrowIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[2]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
 				updateTileAttr("forecastDayAfterTomorrowIcon", "<img src='" + iconURL1 + (forcast.daypart[0].iconCode[4]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
@@ -787,8 +787,6 @@ def CalculatePrecipDays(day7List, rain7List) {
 def CloudCoverDays(day6List, cloud6List) {
     if(txtEnable == true){log.info "day6List: $day6List"}
     if(txtEnable == true){log.info "cloud6List: $cloud6List"}
-    //log.info "day6List: $day6List"
-    //log.info "cloud6List: $cloud6List"
     
     def x = 0
     def z = 0    
