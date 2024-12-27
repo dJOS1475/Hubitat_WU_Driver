@@ -4,7 +4,7 @@
   "version": "7.2.2",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2023-09-24",
-  "releaseNotes": "v7.2.2 - Added Last Error data to an Attribute so it can be Added to a Tile as an attribute",
+  "releaseNotes": "v7.2.x - Added Last Error data to an Attribute so it can be Added to a Tile as an attribute plus multiple nice updates and improvements by Swade",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
