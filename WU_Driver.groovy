@@ -16,17 +16,19 @@
 *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
 *  for the specific language governing permissions and limitations under the License.
 *
-*  Last Update 12/27/2024
+*  Last Update 01/16/2025
 *
+*	v7.2.4 - Only show 3day forecast size on tile when over 1000
+*	v7.2.3 - Fix Null Icon on 3day forecast when WU changes from Day to Night Modes
 *	v7.2.2 - Added Last Error data to an Attribute so it can be Added to a Tile as an attribute
-*	v7.2.1 - Updated Estimated Rain Amounts to Dsiplay None instead of 0.0 in when estimate is 0
+*	v7.2.1 - Updated Estimated Rain Amounts to Display None instead of 0.0 in when estimate is 0
 *	v7.2.0 - Updated Error checking code when network or site issues - Issues Warnings when site and connection issues 
 *          - and record last error. Only if 5 Warnings in a row will it issue an Error
 *	v7.1.7 - Added forecasted rain to 3 Day Forecast Tile
 *	v7.1.6 - Added back Feels Like with some improved handling to either wind chill or heat index
 *	v7.1.5 - Added rain per day for the last week
 *	v7.1.4 - Added Cloud Coverage Forecast of 6 days of AM and PM 
-*	v7.1.3 - Removed Illuminance capability as it was unused
+*	v7.1.3 - Removed Illuminance capability as it was unusedo either wind chill or heat index
 *	v7.1.2 - Removed Station ID from 3 Day Forecast to reduce Hubitats too many characters limitation
 *	v7.1.1 - modifed Icon lookup url
 *	v7.1.0 - replaced "int" with "java.lang.Integer" to improve compatibility
@@ -81,8 +83,9 @@
 */
 
 import groovy.transform.Field
+import java.time.LocalTime
 def version() {
-    return "7.2.2"
+    return "7.2.4"
 }
 
 metadata {
@@ -793,23 +796,22 @@ def Forecast(forecast)
     	updateTileAttr("forecastTomorrowIcon", "<img src='" + iconURL1 + (forecast.daypart[0].iconCode[2]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
         updateTileAttr("forecastDayAfterTomorrowIcon", "<img src='" + iconURL1 + (forecast.daypart[0].iconCode[4]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
 
-        //log.error "WU Null Icon - Missing value. Skipped Icon Update (${new Date()})"
         if(device.currentValue('dayOrNight') == "N")
         {
-            if(txtEnable == true){if(forecast.daypart[0].iconCode[0] == 'null'){log.warn "Null Icon - Night Icon Missing value"}}
-            if(forecast.daypart[0].iconCode[1] == 'null'){
-                log.error "WU Null Icon - Night Icon Missing value. Skipped Icon Update (${new Date()})"
+            if(forecast.daypart[0].iconCode[1] == null){
+                log.warn "WU Null Icon - Night Icon Missing value. Skipped Icon Update (${new Date()})"
             } else {
 		        updateTileAttr("forecastTodayIcon", "<img src='" + iconURL1 + (forecast.daypart[0].iconCode[1]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
+                if(txtEnable == true){log.info "Not a Null Night Icon - Normal Icon Used"}
             }
 	    }				
     	else {
-            if(txtEnable == true){if(forecast.daypart[0].iconCode[0] == 'null'){log.warn "Null Icon - Day Icon Missing value"}}
-            if(forecast.daypart[0].iconCode[0] == 'null')
+            if(forecast.daypart[0].iconCode[0] == null)
             {
-                log.error "WU Null Icon - Day Icon Missing value. Skipped Icon Update (${new Date()})"
+                log.warn "WU Null Icon - Day Icon Missing value. Skipped Icon Update (${new Date()})"
             } else {
    	    		updateTileAttr("forecastTodayIcon", "<img src='" + iconURL1 + (forecast.daypart[0].iconCode[0]) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
+                if(txtEnable == true){log.info "Not a Null Day Icon - Normal Icon Used"}
             }
         }
     }
@@ -1394,8 +1396,9 @@ def wu3dayfcst() {
         my3day += "(" + state.HTTPErrorTypes + ")"
     }
     //log.info 'before html3dayfcst length: (' + my3day.length() + ')'
+    //only show my3day length if close to maximum of 1024
     lenmy3day = my3day.length() + 16
-    my3day += ' - {'+ lenmy3day + '}'
+    if (lenmy3day > 1000) {my3day += ' - {'+ lenmy3day + '}'}
     
     my3day += '</table>'
     // show html length in device status
@@ -1406,7 +1409,7 @@ def wu3dayfcst() {
 
     if(my3day.length() > 1024) {
 	    log.error('Too much data to display.</br></br>Current threedayfcstTile length (' + my3day.length() + ') exceeds maximum tile length by ' + (my3day.length() - 1024).toString()  + ' characters.')
-        my3day = '<table>' + sTR + 'Error! Tile greater than 1024 characters. ' + sTR + my3day.length() + ' exceeds maximum tile length by ' + (my3day.length() - 1024).toString() + ' characters.' + sTR + 'Replacing 3 day with todays forecast<br>' + "${device.currentValue('htmlToday')}" + '</table>'
+        my3day = '<table>' + sTR + 'Error! Tile greater than 1024 characters. ' + sTR + my3day.length() + ' exceeds maximum tile length by ' + (my3day.length() - 1024).toString() + ' characters.' + sTR + 'Try reducing some 3 day forecast options.<br>' + "${device.currentValue('htmlToday')}" + '</table>'
    	}
     updateTileAttr('html3dayfcst', my3day.take(1024))
 }
