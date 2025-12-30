@@ -97,7 +97,7 @@ import groovy.transform.Field
 import java.time.LocalTime
 
 def version() {
-    return "v7.3.1"
+    return "7.3.1"
 }
 
 // Constants
