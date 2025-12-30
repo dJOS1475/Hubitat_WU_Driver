@@ -1262,8 +1262,8 @@ def wu3dayfcst() {
     String sTD='<td>'
     String sTR='<tr><td>'
     
-    String iconSunrise = '<img src=https://tinyurl.com/icnqz/wsr.png>'
-    String iconSunset = '<img src=https://tinyurl.com/icnqz/wss.png>'
+    String iconSunrise = '<img src=https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/wuIcons/wsr.png>'
+    String iconSunset = '<img src=https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/wuIcons/wss.png>'
     String degreeSign = "°" + device.currentValue('TempUnit')
     String MeasureSign = device.currentValue('MeasureUnit')
     String sunriseLocal
