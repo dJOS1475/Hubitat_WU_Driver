@@ -1263,7 +1263,7 @@ def wu3dayfcst() {
     String sTR='<tr><td>'
     
     String iconSunrise = '<img src=https://tinyurl.com/4sfpf5bn/wsr.png>'
-    String iconSunset = '<img src=https://tinyurl.com/4sfpf5bn/wss.png>'
+    String iconSunset = '<img src=https://tinyurl.com/jj2nxyvn/wss.png>'
     String degreeSign = "°" + device.currentValue('TempUnit')
     String MeasureSign = device.currentValue('MeasureUnit')
     String sunriseLocal
