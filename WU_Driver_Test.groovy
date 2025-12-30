@@ -112,7 +112,7 @@ def version() {
 @Field static final java.lang.Integer MAX_ERROR_COUNT = 5
 
 metadata {
-    definition (name: "Wunderground Driver", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/WU_Driver.groovy") {
+    definition (name: "Wunderground Driver", namespace: "dJOS", author: "Derek Osborn", importUrl: "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/refs/heads/main/WU_Driver_Test.groovy") {
         capability "Actuator"
         capability "Sensor"
         capability "Temperature Measurement"
