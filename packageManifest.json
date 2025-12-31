@@ -1,10 +1,10 @@
 {
   "packageName": "Enhanced Weather Underground Driver",
   "author": "Derek Osborn",
-  "version": "7.3.5",
+  "version": "7.3.3",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2023-09-24",
-  "releaseNotes": "7.3.5 - Added line break above Now section in 3 day forecast tile for better spacing",
+  "releaseNotes": "v7.3.2 - v7.3.5 - Bug fixes and updates",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
