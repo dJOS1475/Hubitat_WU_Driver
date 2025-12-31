@@ -4,7 +4,7 @@
   "version": "7.3.5",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2023-09-24",
-  "releaseNotes": "v7.3.4 - Moved ICAO airport code to display under suburb name instead of centered across columns\nv7.3.3 - Replaced image-based sunrise/sunset icons with Unicode symbols to save ~300 characters\nv7.3.5 - Added line break above "Now" section in 3-day forecast tile for better spacing",
+  "releaseNotes": "v7.3.4 - Moved ICAO airport code to display under suburb name instead of centered across columns\nv7.3.3 - Replaced image-based sunrise/sunset icons with Unicode symbols to save ~300 characters\nv7.3.5 - Added line break above Now section in 3-day forecast tile for better spacing",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
