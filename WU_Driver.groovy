@@ -18,6 +18,7 @@
 *
 *  Last Update 12/31/2025
 *
+*	v7.3.5 - Added line break above "Now" section in 3-day forecast tile for better spacing
 *	v7.3.4 - Moved ICAO airport code to display under suburb name instead of centered across columns
 *	v7.3.3 - Replaced image-based sunrise/sunset icons with Unicode symbols to save ~300 characters
 *	v7.3.2 - Removed < > markers and @ symbols from display, added smart truncation for 1024 char limit
@@ -92,7 +93,7 @@ import groovy.transform.Field
 import java.time.LocalTime
 
 def version() {
-    return "7.3.4"
+    return "7.3.5"
 }
 
 // Constants
@@ -1434,7 +1435,7 @@ def wu3dayfcst() {
     my3day << sTR
     
     // Build the "Now" section - store separately so we can conditionally include rain
-    String nowSection = "Now " + "${device.currentValue('temperature')} " + degreeSign + "<br>Feels ${device.currentValue('feelsLike')} " + degreeSign + "<br>Humidity ${device.currentValue('humidity')}" + '%'
+    String nowSection = "<br>Now " + "${device.currentValue('temperature')} " + degreeSign + "<br>Feels ${device.currentValue('feelsLike')} " + degreeSign + "<br>Humidity ${device.currentValue('humidity')}" + '%'
     String rainSection = '<br>' + strRainNow
     
     my3day << nowSection << rainSection << '<p>'
