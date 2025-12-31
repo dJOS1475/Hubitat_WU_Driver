@@ -1260,8 +1260,8 @@ def wu3dayfcst() {
     String sTR='<tr><td>'
     
     // Use Unicode symbols instead of images to save characters (each image URL was ~150 chars, symbols are ~2 chars)
-    String iconSunrise = '☀'  // Sunrise symbol
-    String iconSunset = '☽'   // Sunset/moon symbol
+    String iconSunrise = '☀ '  // Sunrise symbol
+    String iconSunset = '☽ '   // Sunset/moon symbol
     String degreeSign = "°" + device.currentValue('TempUnit')
     String MeasureSign = device.currentValue('MeasureUnit')
     String sunriseLocal
