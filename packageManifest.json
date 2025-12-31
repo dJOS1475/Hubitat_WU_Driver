@@ -1,10 +1,10 @@
 {
   "packageName": "Enhanced Weather Underground Driver",
   "author": "Derek Osborn",
-  "version": "7.3.2",
+  "version": "7.3.4",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2023-09-24",
-  "releaseNotes": "v7.3.2 - Only show 3day forecast size on tile when over 1000",
+  "releaseNotes": "v7.3.4 - Moved ICAO airport code to display under suburb name instead of centered across columns\nv7.3.3 - Replaced image-based sunrise/sunset icons with Unicode symbols to save ~300 characters",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
