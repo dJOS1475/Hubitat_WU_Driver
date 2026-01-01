@@ -1,15 +1,6 @@
 {
 	"author": "Derek Osborn",
 	"gitHubUrl": "https://github.com/dJOS1475",
-	"apps" : [
-		{
-			"name": "Memory Monitor & Auto Reboot",
-			"category": "Utility",
-			"location": "https://raw.githubusercontent.com/dJOS1475/Hubitat-Memory-Monitor-Auto-Reboot/refs/heads/main/packageManifest.json",
-			"description": "Monitors hub memory usage and automatically reboots when free memory falls below a configured threshold during a specified time window",
-			"tags": ["Utility"]
-		}
-	],
 	"packages": [
 		{
 			"name": "Enhanced Weather Underground Driver",
@@ -41,6 +32,13 @@
 			"location": "https://raw.githubusercontent.com/dJOS1475/Fronius_Inverter_Driver_Hubitat/main/packageManifest.json",
 			"description": "Fronius Solar Inverter Driver for Hubitat",
 			"tags": ["Energy Monitoring"]
+		},
+		{
+			"name": "Memory Monitor & Auto Reboot",
+			"category": "Utility",
+			"location": "https://raw.githubusercontent.com/dJOS1475/Hubitat-Memory-Monitor-Auto-Reboot/refs/heads/main/packageManifest.json",
+			"description": "Monitors hub memory usage and automatically reboots when free memory falls below a configured threshold during a specified time window",
+			"tags": ["Utility"]
 		}		
 	]
 	
