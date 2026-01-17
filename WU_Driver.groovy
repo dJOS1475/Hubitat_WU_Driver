@@ -16,8 +16,9 @@
 *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
 *  for the specific language governing permissions and limitations under the License.
 *
-*  Last Update 12/31/2025
+*  Last Update 01/18/2026
 *
+*	v7.3.6 - Added 6-day forecast tile (days 4-6) with toggle option
 *	v7.3.5 - Added line break above "Now" section in 3-day forecast tile for better spacing
 *	v7.3.4 - Moved ICAO airport code to display under suburb name instead of centered across columns
 *	v7.3.3 - Replaced image-based sunrise/sunset icons with Unicode symbols to save ~300 characters
@@ -93,7 +94,7 @@ import groovy.transform.Field
 import java.time.LocalTime
 
 def version() {
-    return "7.3.5"
+    return "7.3.6"
 }
 
 // Constants
@@ -167,18 +168,31 @@ metadata {
  	    attribute "temperatureMaxToday", "number"
     	attribute "temperatureMaxTomorrow", "number"
 	    attribute "temperatureMaxDayAfterTomorrow", "number"
+	    attribute "temperatureMaxDay4", "number"
+	    attribute "temperatureMaxDay5", "number"
+	    attribute "temperatureMaxDay6", "number"
 	    attribute "temperatureMinToday", "number"
 	    attribute "temperatureMinTomorrow", "number"
 	    attribute "temperatureMinDayAfterTomorrow", "number"
+	    attribute "temperatureMinDay4", "number"
+	    attribute "temperatureMinDay5", "number"
+	    attribute "temperatureMinDay6", "number"
 	    attribute "forecastPhraseToday", "string"
 	    attribute "forecastPhraseTomorrow", "string"
 	    attribute "forecastPhraseDayAfterTomorrow", "string"
+	    attribute "forecastPhraseDay4", "string"
+	    attribute "forecastPhraseDay5", "string"
+	    attribute "forecastPhraseDay6", "string"
 	    attribute "precipChanceToday", "number"
  	    attribute "precipChanceTomorrow", "number"
 	    attribute "precipChanceDayAfterTomorrow", "number"
+	    attribute "precipChanceDay4", "number"
+	    attribute "precipChanceDay5", "number"
+	    attribute "precipChanceDay6", "number"
 	    attribute "sunriseTimeLocal", "String"
 	    attribute "sunsetTimeLocal", "String"
 	    attribute "html3dayfcst", "string"
+	    attribute "html6dayfcst", "string"
  	    
  	    attribute "htmlWarnings", "string"
  	    attribute "htmlToday", "string"
@@ -187,6 +201,9 @@ metadata {
 		attribute "today", "string"
 		attribute "tomorrow", "string"
  	    attribute "dayAfterTomorrow", "string"
+	    attribute "day4", "string"
+	    attribute "day5", "string"
+	    attribute "day6", "string"
         attribute "uvDescription", "string"
         attribute "uvIndex", "number"
         attribute "snowRange", "number"
@@ -204,6 +221,9 @@ metadata {
 		attribute "forecastTodayIcon", "string"
         attribute "forecastTomorrowIcon", "string"
         attribute "forecastDayAfterTomorrowIcon", "string"
+	    attribute "forecastDay4Icon", "string"
+	    attribute "forecastDay5Icon", "string"
+	    attribute "forecastDay6Icon", "string"
 		attribute "city", "string"
         attribute "state", "string"
         attribute "percentPrecip", "number"
@@ -243,6 +263,9 @@ metadata {
         attribute "fCstRainToday", "number"
         attribute "fCstRainTomorrow", "number"
         attribute "fCstRainDayAfterTomorrow", "number"
+	    attribute "fCstRainDay4", "number"
+	    attribute "fCstRainDay5", "number"
+	    attribute "fCstRainDay6", "number"
         attribute "moonPhase", "string"        
 		attribute "humidity", "number"
 		attribute "station_location", "string"
@@ -287,6 +310,7 @@ metadata {
 			input "longitudeCust", "text", title: "Enter Longitude in decimals, EX: -121.932309", defaultValue: 0, width: 6, required: false}
             input "weatherwarnings", "bool", title: "Get WU Weather Warnings", required: false, defaultValue: true
             input "threedayforecast", "bool", title: "Create a 3-Day Forecast Tile", required: false, defaultValue: true
+            input "sixdayforecast", "bool", title: "Create a 6-Day Forecast Tile (Days 4-6)", required: false, defaultValue: false
             input "rainhistory", "bool", title: "Create a 7-Day Rain History Tile", required: false, defaultValue: true
             if(threedayforecast && rainhistory){
             input "raindaysdisplay", "enum", title: "Rain History Days to Display On 3-Day Forecast Tile: (Requires 3-day Forecast and Rain History Tiles) (1st/2nd number Days depends on WU returning 6 or 7 day history) ", required: false, defaultValue: "Last 6/7-Days", options: ["None", "Yesterday", "Last 2/3-Days", "Last 4/5-Days", "Last 6/7-Days"]}
@@ -379,7 +403,13 @@ def poll() {
         {
             wu3dayfcst()
         }
-        
+
+        if(txtEnable){log.info "6-Day Forecast Tile: $sixdayforecast"}
+        if(sixdayforecast)
+        {
+            wu6dayfcst()
+        }
+
         if(weatherwarnings)
         {
             WeatherWarningTile()
@@ -703,10 +733,16 @@ def Forecast(Map forecast)
     updateTileAttr("temperatureMaxToday", safeGet(forecast.calendarDayTemperatureMax, 0, 0))
     updateTileAttr("temperatureMaxTomorrow", safeGet(forecast.calendarDayTemperatureMax, 1, 0))
     updateTileAttr("temperatureMaxDayAfterTomorrow", safeGet(forecast.calendarDayTemperatureMax, 2, 0))
+    updateTileAttr("temperatureMaxDay4", safeGet(forecast.calendarDayTemperatureMax, 3, 0))
+    updateTileAttr("temperatureMaxDay5", safeGet(forecast.calendarDayTemperatureMax, 4, 0))
+    updateTileAttr("temperatureMaxDay6", safeGet(forecast.calendarDayTemperatureMax, 5, 0))
     updateTileAttr("temperatureMinToday", safeGet(forecast.calendarDayTemperatureMin, 0, 0))
     updateTileAttr("temperatureMinTomorrow", safeGet(forecast.calendarDayTemperatureMin, 1, 0))
     updateTileAttr("temperatureMinDayAfterTomorrow", safeGet(forecast.calendarDayTemperatureMin, 2, 0))
-    
+    updateTileAttr("temperatureMinDay4", safeGet(forecast.calendarDayTemperatureMin, 3, 0))
+    updateTileAttr("temperatureMinDay5", safeGet(forecast.calendarDayTemperatureMin, 4, 0))
+    updateTileAttr("temperatureMinDay6", safeGet(forecast.calendarDayTemperatureMin, 5, 0))
+
     def daypartData = forecast.daypart[0]
     if (!daypartData) {
         log.warn("No daypart data available")
@@ -714,16 +750,28 @@ def Forecast(Map forecast)
     }
     
     updateTileAttr("forecastPhraseTomorrow", safeGet(daypartData.wxPhraseLong, 2, ""))
-    updateTileAttr("forecastPhraseDayAfterTomorrow", safeGet(daypartData.wxPhraseLong, 4, ""))     
+    updateTileAttr("forecastPhraseDayAfterTomorrow", safeGet(daypartData.wxPhraseLong, 4, ""))
+    updateTileAttr("forecastPhraseDay4", safeGet(daypartData.wxPhraseLong, 6, ""))
+    updateTileAttr("forecastPhraseDay5", safeGet(daypartData.wxPhraseLong, 8, ""))
+    updateTileAttr("forecastPhraseDay6", safeGet(daypartData.wxPhraseLong, 10, ""))
     updateTileAttr("precipChanceTomorrow", safeGet(daypartData.precipChance, 2, 0))
-    updateTileAttr("precipChanceDayAfterTomorrow", safeGet(daypartData.precipChance, 4, 0))           
+    updateTileAttr("precipChanceDayAfterTomorrow", safeGet(daypartData.precipChance, 4, 0))
+    updateTileAttr("precipChanceDay4", safeGet(daypartData.precipChance, 6, 0))
+    updateTileAttr("precipChanceDay5", safeGet(daypartData.precipChance, 8, 0))
+    updateTileAttr("precipChanceDay6", safeGet(daypartData.precipChance, 10, 0))
     updateTileAttr("sunsetTimeLocal", safeGet(forecast.sunsetTimeLocal, 0, ""))
     updateTileAttr("sunriseTimeLocal", safeGet(forecast.sunriseTimeLocal, 0, ""))            
     updateTileAttr("today", safeGet(forecast.dayOfWeek, 0, ""))
     updateTileAttr("tomorrow", safeGet(forecast.dayOfWeek, 1, ""))
-    updateTileAttr("dayAfterTomorrow", safeGet(forecast.dayOfWeek, 2, ""))   
+    updateTileAttr("dayAfterTomorrow", safeGet(forecast.dayOfWeek, 2, ""))
+    updateTileAttr("day4", safeGet(forecast.dayOfWeek, 3, ""))
+    updateTileAttr("day5", safeGet(forecast.dayOfWeek, 4, ""))
+    updateTileAttr("day6", safeGet(forecast.dayOfWeek, 5, ""))
     updateTileAttr("fCstRainTomorrow", safeGet(daypartData.qpf, 2, 0))
-    updateTileAttr("fCstRainDayAfterTomorrow", safeGet(daypartData.qpf, 4, 0))  
+    updateTileAttr("fCstRainDayAfterTomorrow", safeGet(daypartData.qpf, 4, 0))
+    updateTileAttr("fCstRainDay4", safeGet(daypartData.qpf, 6, 0))
+    updateTileAttr("fCstRainDay5", safeGet(daypartData.qpf, 8, 0))
+    updateTileAttr("fCstRainDay6", safeGet(daypartData.qpf, 10, 0))
     updateTileAttr("forecastShort", safeGet(forecast.narrative, 0, ""))	   
    	updateTileAttr("forecastTomorrow", safeGet(daypartData.narrative, 2, ""))
    	updateTileAttr("forecastDayAfterTomorrow", safeGet(daypartData.narrative, 4, "")) 
@@ -844,6 +892,9 @@ def Forecast(Map forecast)
     {
     	updateTileAttr("forecastTomorrowIcon", "<img src='" + iconURL1 + safeGet(daypartData.iconCode, 2, 0) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
         updateTileAttr("forecastDayAfterTomorrowIcon", "<img src='" + iconURL1 + safeGet(daypartData.iconCode, 4, 0) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
+        updateTileAttr("forecastDay4Icon", "<img src='" + iconURL1 + safeGet(daypartData.iconCode, 6, 0) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
+        updateTileAttr("forecastDay5Icon", "<img src='" + iconURL1 + safeGet(daypartData.iconCode, 8, 0) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
+        updateTileAttr("forecastDay6Icon", "<img src='" + iconURL1 + safeGet(daypartData.iconCode, 10, 0) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
 
         if(device.currentValue('dayOrNight') == "N")
         {
@@ -1621,6 +1672,160 @@ def wu3dayfcst() {
         finalHtml = '<table>' + sTR + 'Error! Tile greater than ' + MAX_TILE_LENGTH + ' characters. ' + sTR + finalHtml.length() + ' exceeds maximum tile length by ' + (finalHtml.length() - MAX_TILE_LENGTH).toString() + ' characters.' + sTR + 'Try reducing some 3 day forecast options.<br>' + "${device.currentValue('htmlToday')}" + '</table>'
    	}
     updateTileAttr('html3dayfcst', finalHtml.take(MAX_TILE_LENGTH))
+}
+
+// HTML 6 Day Forecast Tile Logic (Days 4-6)
+def wu6dayfcst() {
+    if(txtEnable){log.info "6-Day Forecast: $sixdayforecast"}
+
+    StringBuilder my6day = new StringBuilder()
+    String sTD='<td>'
+    String sTR='<tr><td>'
+
+    String degreeSign = "°" + device.currentValue('TempUnit')
+    String MeasureSign = device.currentValue('MeasureUnit')
+    String sl = device.currentValue('station_location') ?: "Unknown"
+
+    // Check if we're in Night mode - if so, shift days forward by 1 to avoid overlap with 3-day tile
+    Boolean isNightMode = False
+
+    // Set up day names, icons, phrases, temps, and precip based on day/night mode
+    String col1Day, col2Day, col3Day
+    String col1Icon, col2Icon, col3Icon
+    String col1Phrase, col2Phrase, col3Phrase
+    def col1MaxTemp, col1MinTemp, col2MaxTemp, col2MinTemp, col3MaxTemp, col3MinTemp
+    def col1PrecipChance, col2PrecipChance, col3PrecipChance
+    BigDecimal col1Rain, col2Rain, col3Rain
+
+    if (isNightMode) {
+        // Night mode: show Day4, Day5, Day6 (since 3-day shows Tonight, Tomorrow, DayAfterTomorrow)
+        col1Day = device.currentValue('day4')
+        col2Day = device.currentValue('day5')
+        col3Day = device.currentValue('day6')
+        col1Icon = device.currentValue('forecastDay4Icon')
+        col2Icon = device.currentValue('forecastDay5Icon')
+        col3Icon = device.currentValue('forecastDay6Icon')
+        col1Phrase = device.currentValue('forecastPhraseDay4')
+        col2Phrase = device.currentValue('forecastPhraseDay5')
+        col3Phrase = device.currentValue('forecastPhraseDay6')
+        col1MaxTemp = device.currentValue('temperatureMaxDay4')
+        col1MinTemp = device.currentValue('temperatureMinDay4')
+        col2MaxTemp = device.currentValue('temperatureMaxDay5')
+        col2MinTemp = device.currentValue('temperatureMinDay5')
+        col3MaxTemp = device.currentValue('temperatureMaxDay6')
+        col3MinTemp = device.currentValue('temperatureMinDay6')
+        col1PrecipChance = device.currentValue('precipChanceDay4')
+        col2PrecipChance = device.currentValue('precipChanceDay5')
+        col3PrecipChance = device.currentValue('precipChanceDay6')
+        col1Rain = GetAmountRain("${device.currentValue('fCstRainDay4')}")
+        col2Rain = GetAmountRain("${device.currentValue('fCstRainDay5')}")
+        col3Rain = GetAmountRain("${device.currentValue('fCstRainDay6')}")
+    } else {
+        // Day mode: show DayAfterTomorrow, Day4, Day5 (since 3-day shows Today, Tomorrow, DayAfterTomorrow)
+        col1Day = device.currentValue('dayAfterTomorrow')
+        col2Day = device.currentValue('day4')
+        col3Day = device.currentValue('day5')
+        col1Icon = device.currentValue('forecastDayAfterTomorrowIcon')
+        col2Icon = device.currentValue('forecastDay4Icon')
+        col3Icon = device.currentValue('forecastDay5Icon')
+        col1Phrase = device.currentValue('forecastPhraseDayAfterTomorrow')
+        col2Phrase = device.currentValue('forecastPhraseDay4')
+        col3Phrase = device.currentValue('forecastPhraseDay5')
+        col1MaxTemp = device.currentValue('temperatureMaxDayAfterTomorrow')
+        col1MinTemp = device.currentValue('temperatureMinDayAfterTomorrow')
+        col2MaxTemp = device.currentValue('temperatureMaxDay4')
+        col2MinTemp = device.currentValue('temperatureMinDay4')
+        col3MaxTemp = device.currentValue('temperatureMaxDay5')
+        col3MinTemp = device.currentValue('temperatureMinDay5')
+        col1PrecipChance = device.currentValue('precipChanceDayAfterTomorrow')
+        col2PrecipChance = device.currentValue('precipChanceDay4')
+        col3PrecipChance = device.currentValue('precipChanceDay5')
+        col1Rain = GetAmountRain("${device.currentValue('fCstRainDayAfterTomorrow')}")
+        col2Rain = GetAmountRain("${device.currentValue('fCstRainDay4')}")
+        col3Rain = GetAmountRain("${device.currentValue('fCstRainDay5')}")
+    }
+
+    // Format rain strings
+    String strRain1 = (col1Rain > 0.00) ? "${col1Rain} ${MeasureSign}" : 'None'
+    String strRain2 = (col2Rain > 0.00) ? "${col2Rain} ${MeasureSign}" : 'None'
+    String strRain3 = (col3Rain > 0.00) ? "${col3Rain} ${MeasureSign}" : 'None'
+
+    my6day << '<table>'
+    // Header row
+    my6day << '<tr>'
+    my6day << '<td>' << sl
+    my6day << '<td style="min-width:5%">'
+    my6day << '<td>' << col1Day
+    my6day << '<td style="min-width:5%">'
+    my6day << '<td>' << col2Day
+    my6day << '<td style="min-width:5%">'
+    my6day << '<td>' << col3Day
+    my6day << sTR
+
+    // Icon row
+    my6day << 'Days 4-6'
+    my6day << sTD
+    my6day << sTD << col1Icon
+    my6day << sTD
+    my6day << sTD << col2Icon
+    my6day << sTD
+    my6day << sTD << col3Icon
+    my6day << sTR
+
+    // Forecast phrase row
+    my6day << sTD
+    my6day << sTD << col1Phrase
+    my6day << sTD
+    my6day << sTD << col2Phrase
+    my6day << sTD
+    my6day << sTD << col3Phrase
+    my6day << sTR
+
+    // High/Low row
+    my6day << 'High/Low'
+    my6day << sTD
+    my6day << sTD << col1MaxTemp << degreeSign << ' ' << col1MinTemp << degreeSign
+    my6day << sTD
+    my6day << sTD << col2MaxTemp << degreeSign << ' ' << col2MinTemp << degreeSign
+    my6day << sTD
+    my6day << sTD << col3MaxTemp << degreeSign << ' ' << col3MinTemp << degreeSign
+    my6day << sTR
+
+    // Chance Precip row
+    my6day << 'Chance Precip'
+    my6day << sTD
+    my6day << sTD << col1PrecipChance << "% ${strRain1}"
+    my6day << sTD
+    my6day << sTD << col2PrecipChance << "% ${strRain2}"
+    my6day << sTD
+    my6day << sTD << col3PrecipChance << "% ${strRain3}"
+
+    //display HTTP Warnings
+    if (state.HTTPErrorFlag) {
+        my6day << "(" << state.HTTPErrorTypes << ")"
+    }
+
+    my6day << '</table>'
+
+    //calculate length
+    String finalHtml = my6day.toString()
+    java.lang.Integer lenmy6day = finalHtml.length()
+
+    // show html length in device status
+    state.HTTP6DayLength = lenmy6day
+
+    // Only add debug length info if over 1000 chars AND not already over limit
+    if (lenmy6day > 1000 && lenmy6day < MAX_TILE_LENGTH) {
+        finalHtml = finalHtml.substring(0, finalHtml.length() - 8) + ' {' + lenmy6day + '}</table>'
+    }
+
+    if(txtEnable){log.info 'html6dayfcst length: (' + finalHtml.length() + ')'}
+
+    if(finalHtml.length() > MAX_TILE_LENGTH) {
+	    log.error('Too much data to display.</br></br>Current sixdayfcstTile length (' + finalHtml.length() + ') exceeds maximum tile length by ' + (finalHtml.length() - MAX_TILE_LENGTH).toString()  + ' characters.')
+        finalHtml = '<table>' + sTR + 'Error! Tile greater than ' + MAX_TILE_LENGTH + ' characters. ' + sTR + finalHtml.length() + ' exceeds maximum tile length by ' + (finalHtml.length() - MAX_TILE_LENGTH).toString() + ' characters.' + sTR + 'Try reducing some forecast options.<br>' + '</table>'
+   	}
+    updateTileAttr('html6dayfcst', finalHtml.take(MAX_TILE_LENGTH))
 }
 
 // HTML Rain Tiles Logic
