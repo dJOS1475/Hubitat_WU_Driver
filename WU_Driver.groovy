@@ -18,6 +18,7 @@
 *
 *  Last Update 01/18/2026
 *
+*	v7.3.7 - Quick and dirty bug fix for 6 day tile
 *	v7.3.6 - Added 6-day forecast tile (days 4-6) with toggle option
 *	v7.3.5 - Added line break above "Now" section in 3-day forecast tile for better spacing
 *	v7.3.4 - Moved ICAO airport code to display under suburb name instead of centered across columns
@@ -94,7 +95,7 @@ import groovy.transform.Field
 import java.time.LocalTime
 
 def version() {
-    return "7.3.6"
+    return "7.3.7"
 }
 
 // Constants
@@ -1687,7 +1688,7 @@ def wu6dayfcst() {
     String sl = device.currentValue('station_location') ?: "Unknown"
 
     // Check if we're in Night mode - if so, shift days forward by 1 to avoid overlap with 3-day tile
-    Boolean isNightMode = False
+    Boolean isNightMode = true
 
     // Set up day names, icons, phrases, temps, and precip based on day/night mode
     String col1Day, col2Day, col3Day
