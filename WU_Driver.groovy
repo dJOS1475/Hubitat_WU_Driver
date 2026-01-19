@@ -18,7 +18,8 @@
 *
 *  Last Update 01/19/2026
 *
-*	v7.4.0 - Added icon style option: Standard Icons or Enhanced Icons (altIcons)
+*	v7.4.1 - Center justified Rain History tile content
+*	v7.4.0 - Added icon style option: Standard Icons or Enhanced Icons (alticons)
 *	v7.3.7 - Quick and dirty bug fix for 6 day tile
 *	v7.3.6 - Added 6-day forecast tile (days 4-6) with toggle option
 *	v7.3.5 - Added line break above "Now" section in 3-day forecast tile for better spacing
@@ -96,7 +97,7 @@ import groovy.transform.Field
 import java.time.LocalTime
 
 def version() {
-    return "7.4.0"
+    return "7.4.1"
 }
 
 // Constants
@@ -1853,14 +1854,14 @@ def rainTile() {
         s3rdHeader = "Last 6 Days:"
     }
 
-    htmlRainTile << "<table>"
-    htmlRainTile << '<tr style="font-size:80%"><td>' << "${device.currentValue('station_location')}<br>$totalRainDays Day Rain History"
-    htmlRainTile << '<tr style="font-size:85%"><td>Yesterday:' << " ${device.currentValue('precip_Yesterday')}"
-    htmlRainTile << '<tr style="font-size:85%"><td>' << s1stHeader << " ${device.currentValue('precip_Last3Days')}"
-    htmlRainTile << '<tr style="font-size:85%"><td>' << s2ndHeader << " ${device.currentValue('precip_Last5Days')}"
-    htmlRainTile << '<tr style="font-size:85%"><td>' << s3rdHeader << " ${device.currentValue('precip_Last7Days')}"
+    htmlRainTile << '<div style="text-align:center"><table style="margin:0 auto">'
+    htmlRainTile << '<tr style="font-size:80%"><td style="text-align:center">' << "${device.currentValue('station_location')}<br>$totalRainDays Day Rain History"
+    htmlRainTile << '<tr style="font-size:85%"><td style="text-align:center">Yesterday:' << " ${device.currentValue('precip_Yesterday')}"
+    htmlRainTile << '<tr style="font-size:85%"><td style="text-align:center">' << s1stHeader << " ${device.currentValue('precip_Last3Days')}"
+    htmlRainTile << '<tr style="font-size:85%"><td style="text-align:center">' << s2ndHeader << " ${device.currentValue('precip_Last5Days')}"
+    htmlRainTile << '<tr style="font-size:85%"><td style="text-align:center">' << s3rdHeader << " ${device.currentValue('precip_Last7Days')}"
     htmlRainTile << '<tr style="font-size:85%"><td> &nbsp;&nbsp;&nbsp;'  //blank line
- 	htmlRainTile << '</table>'
+ 	htmlRainTile << '</table></div>'
 
     updateTileAttr("htmlRainTile", htmlRainTile.toString())
   	if(txtEnable){log.debug "htmlRainTile contains ${htmlRainTile.toString()}"}
