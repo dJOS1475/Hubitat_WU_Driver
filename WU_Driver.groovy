@@ -16,8 +16,9 @@
 *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
 *  for the specific language governing permissions and limitations under the License.
 *
-*  Last Update 01/18/2026
+*  Last Update 01/19/2026
 *
+*	v7.4.0 - Added icon style option: Standard Icons or Enhanced Icons (altIcons)
 *	v7.3.7 - Quick and dirty bug fix for 6 day tile
 *	v7.3.6 - Added 6-day forecast tile (days 4-6) with toggle option
 *	v7.3.5 - Added line break above "Now" section in 3-day forecast tile for better spacing
@@ -95,7 +96,7 @@ import groovy.transform.Field
 import java.time.LocalTime
 
 def version() {
-    return "7.3.7"
+    return "7.4.0"
 }
 
 // Constants
@@ -299,8 +300,8 @@ metadata {
 			input "unitFormat", "enum", required: true, title: "Unit Format",  options: ["Imperial", "Metric", "UK Hybrid"]
             if(unitFormat == "UK Hybrid"){input "unitElevation", "bool", required: false, title: "Use Metric for elevation (m)", defaultValue: false}
             input "language", "enum", required: true, title: "Language",  options: ["US", "GB", "ES"], defaultValue: US
-            input "useIcons", "bool", required: false, title: "Use WU Icons (Optional)", defaultValue: true
-			if(useIcons){
+            input "iconStyle", "enum", required: false, title: "Icon Style", options: ["None", "Standard Icons", "Enhanced Icons"], defaultValue: "Standard Icons"
+			if(iconStyle && iconStyle != "None"){
 			input "iconHeight1", "text", required: true, title: "Icon Height", defaultValue: 100
 			input "iconWidth1", "text", required: true, title: "Icon Width", defaultValue: 100}			
             input "autoPoll", "bool", required: false, title: "Enable Auto Poll"
@@ -887,9 +888,10 @@ def Forecast(Map forecast)
     }
     
     // Weather Icons Logic
-    iconURL1 = "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/wuIcons/"
-    
-    if(useIcons)
+    String iconFolder = (iconStyle == "Enhanced Icons") ? "alticons" : "wuIcons"
+    iconURL1 = "https://raw.githubusercontent.com/dJOS1475/Hubitat_WU_Driver/main/${iconFolder}/"
+
+    if(iconStyle && iconStyle != "None")
     {
     	updateTileAttr("forecastTomorrowIcon", "<img src='" + iconURL1 + safeGet(daypartData.iconCode, 2, 0) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
         updateTileAttr("forecastDayAfterTomorrowIcon", "<img src='" + iconURL1 + safeGet(daypartData.iconCode, 4, 0) + ".png" +"' width='" +iconWidth1 +"' height='" +iconHeight1 +"'>")
