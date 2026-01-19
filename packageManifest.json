@@ -1,10 +1,10 @@
 {
   "packageName": "Enhanced Weather Underground Driver",
   "author": "Derek Osborn",
-  "version": "7.3.7",
+  "version": "7.4.0",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2023-09-24",
-  "releaseNotes": "v7.3.7 - Quick and dirty bug fix for 6 day tile",
+  "releaseNotes": "v7.4.0 - Added icon style option: Standard Icons or Enhanced Icons",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
