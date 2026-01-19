@@ -4,7 +4,7 @@
   "version": "7.4.1",
   "minimumHEVersion": "2.0.0",
   "dateReleased": "2023-09-24",
-  "releaseNotes": "v7.4.0 - Added icon style option: Standard Icons or Enhanced Icons/n v7.4.1 - Center justified Rain History tile content",
+  "releaseNotes": "v7.4.0 - Added icon style option: Standard Icons or Enhanced Icons /n v7.4.1 - Center justified Rain History tile content",
   "communityLink": "https://community.hubitat.com/t/release-enhanced-weather-underground-driver/54141",
   "drivers": [
     {
