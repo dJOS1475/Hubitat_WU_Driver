@@ -18,6 +18,7 @@
 *
 *  Last Update 01/19/2026
 *
+*	v7.4.2 - Fixed metric rainfall unit
 *	v7.4.1 - Center justified Rain History tile content
 *	v7.4.0 - Added icon style option: Standard Icons or Enhanced Icons (alticons)
 *	v7.3.7 - Quick and dirty bug fix for 6 day tile
@@ -107,8 +108,8 @@ def version() {
 @Field static final String ImperialSpeedUnit='mph'
 @Field static final String MetricSpeedUnit='km/h'
 @Field static final String ImperialMeasureUnit='in'
-@Field static final String MetricMeasureUnit='cm'
-@Field static final String HybridMeasureUnit='cm'
+@Field static final String MetricMeasureUnit='mm'
+@Field static final String HybridMeasureUnit='mm'
 @Field static final java.lang.Integer MAX_TILE_LENGTH = 1024
 @Field static final java.lang.Integer MAX_ERROR_COUNT = 5
 
