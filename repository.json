@@ -39,7 +39,14 @@
 			"location": "https://raw.githubusercontent.com/dJOS1475/Hubitat-Memory-Monitor-Auto-Reboot/refs/heads/main/packageManifest.json",
 			"description": "Monitors hub memory usage and automatically reboots when free memory falls below a configured threshold during a specified time window",
 			"tags": ["Utility"]
-		}		
+		},
+		{
+			"name": "Synology SRM Router Integration",
+			"category": "Integrations",
+			"location": "https://raw.githubusercontent.com/dJOS1475/Synology-SRM-Integration/refs/heads/main/packageManifest.json",
+			"description": "Synology SRM Router Integration for Hubitat.",
+			"tags": ["Utility"]
+		}	
 	]
 	
 }
