@@ -13,7 +13,7 @@
 			"name": "Netatmo (Connect) - Weather Station",
 			"category": "Integrations",
 			"location": "https://raw.githubusercontent.com/dJOS1475/Hubitat_Netatmo/main/packageManifest.json",
-			"description": "Netatmo (Connect) - Weather Station Application and Drivers. Includes Dashboard tiles, Presense detection and Signal Strength Monitoring.",
+			"description": "Netatmo (Connect) - Weather Station Application and Drivers for all modules. Includes Dashboard tiles, Presense detection and Signal Strength Monitoring.",
 			"tags": ["Weather", "Temperature & Humidity", "Dashboards", "Multi Sensors", "Cloud"]
 		},
 		{
