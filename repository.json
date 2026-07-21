@@ -43,6 +43,13 @@
 			"location": "https://raw.githubusercontent.com/dJOS1475/Synology-SRM-Integration/refs/heads/main/packageManifest.json",
 			"description": "Synology SRM Router Integration for Hubitat.",
 			"tags": ["Utility", "Presence & Location", "Repeaters & Extenders", "LAN"]
+		},
+		{
+			"name": "Sofabaton X Series Driver",
+			"category": "Integrations",
+			"location": "https://raw.githubusercontent.com/dJOS1475/Hubitat-Sofabaton-X-Series/refs/heads/main/PackageManifest.json",
+			"description": "Hubitat driver for the Sofabaton X Series Universal Remotes",
+			"tags": ["Utility", "LAN", "IR & RF"]
 		}	
 	]
 	
